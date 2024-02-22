@@ -57,16 +57,71 @@ export class CarGame extends Scene {
 
     this.car_transform = Mat4.identity();
     this.road_transform = Mat4.identity();
+
+    // Movement state
+    this.car_position = vec3(0, 0, 0); // Use a vector to represent position
+    this.car_velocity = vec3(0, 0, 0); // Velocity vector
+    this.car_acceleration = vec3(0, 0, 0); // Acceleration vector
+
+    // Constants
+    this.max_speed = 7;
+    this.acceleration_rate = 5;
+    this.deceleration_rate = 5;
   }
 
   make_control_panel() {
     // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
     this.key_triggered_button(
-      "Move right",
-      ["Control", "D"],
-      () => (this.attached = () => null)
+      "Move Left",
+      ["ArrowLeft"],
+      () => {
+        this.car_acceleration[0] = -this.acceleration_rate;
+      },
+      undefined,
+      () => {
+        this.car_acceleration[0] = 0;
+      }
     );
-    this.new_line();
+    this.key_triggered_button(
+      "Move Right",
+      ["ArrowRight"],
+      () => {
+        this.car_acceleration[0] = this.acceleration_rate;
+      },
+      undefined,
+      () => {
+        this.car_acceleration[0] = 0;
+      }
+    );
+  }
+
+  update_state(dt) {
+    // Update velocity based on acceleration
+    this.car_velocity = this.car_velocity.plus(this.car_acceleration.times(dt));
+
+    // Clamp velocity to the max speed
+    this.car_velocity[0] = Math.max(
+      Math.min(this.car_velocity[0], this.max_speed),
+      -this.max_speed
+    );
+
+    // Update position based on velocity
+    this.car_position = this.car_position.plus(this.car_velocity.times(dt));
+
+    // Deceleration logic (when no keys are pressed)
+    if (
+      this.car_acceleration.equals(vec3(0, 0, 0)) &&
+      !this.car_velocity.equals(vec3(0, 0, 0))
+    ) {
+      const deceleration = this.deceleration_rate * dt;
+      this.car_velocity[0] =
+        this.car_velocity[0] > 0
+          ? Math.max(0, this.car_velocity[0] - deceleration)
+          : Math.min(0, this.car_velocity[0] + deceleration);
+    }
+
+    // Update the car's transformation matrix
+    this.car_transform = Mat4.translation(...this.car_position);
   }
 
   display(context, program_state) {
@@ -91,10 +146,9 @@ export class CarGame extends Scene {
     // The parameters of the Light are: position, color, size
     program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
 
-    const t = program_state.animation_time / 1000,
-      dt = program_state.animation_delta_time / 1000;
-    const yellow = hex_color("#fac91a");
-    let model_transform = Mat4.identity();
+    const t = program_state.animation_time / 1000;
+    const dt = program_state.animation_delta_time / 1000;
+    this.update_state(dt);
 
     const road_transform = this.road_transform.times(
       Mat4.translation(0, -0.5, 0)
