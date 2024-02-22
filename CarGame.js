@@ -29,6 +29,7 @@ export class CarGame extends Scene {
       sphere: new defs.Subdivision_Sphere(4),
       circle: new defs.Regular_2D_Polygon(1, 15),
       box: new defs.Box(2, 1, 4),
+      road: new defs.Box(20, 0.1, 500),
     };
 
     // *** Materials
@@ -42,15 +43,20 @@ export class CarGame extends Scene {
         color: hex_color("#ff0000"),
         ambient: 1,
       }),
+      road: new Material(new defs.Phong_Shader(), {
+        color: hex_color("#D3D3D3"),
+        ambient: 1,
+      }),
     };
 
     this.initial_camera_location = Mat4.look_at(
-      vec3(0, 10, 20),
+      vec3(0, 5, 20),
       vec3(0, 0, 0),
       vec3(0, 1, 0)
     );
 
     this.car_transform = Mat4.identity();
+    this.road_transform = Mat4.identity();
   }
 
   make_control_panel() {
@@ -89,6 +95,17 @@ export class CarGame extends Scene {
       dt = program_state.animation_delta_time / 1000;
     const yellow = hex_color("#fac91a");
     let model_transform = Mat4.identity();
+
+    const road_transform = this.road_transform.times(
+      Mat4.translation(0, -0.5, 0)
+    );
+
+    this.shapes.road.draw(
+      context,
+      program_state,
+      road_transform,
+      this.materials.road
+    );
 
     this.shapes.box.draw(
       context,
