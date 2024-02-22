@@ -67,6 +67,9 @@ export class CarGame extends Scene {
     this.max_speed = 7;
     this.acceleration_rate = 5;
     this.deceleration_rate = 5;
+
+    this.car_tilt = 0;
+    this.max_tilt = Math.PI / 2; // Maximum tilt angle in radians, adjust as needed
   }
 
   make_control_panel() {
@@ -108,6 +111,36 @@ export class CarGame extends Scene {
     // Update position based on velocity
     this.car_position = this.car_position.plus(this.car_velocity.times(dt));
 
+    // Determine the tilt direction based on acceleration
+    const tiltIntensity = Math.PI / 12; // Adjust this value for the desired tilt effect
+    if (this.car_acceleration[0] > 0) {
+      // Tilting right when moving right
+      this.car_tilt = -tiltIntensity;
+    } else if (this.car_acceleration[0] < 0) {
+      // Tilting left when moving left
+      this.car_tilt = tiltIntensity;
+    } else {
+      // No tilt when not turning
+      this.car_tilt = 0;
+    }
+
+    // Update the car's transformation matrix with the new position and tilt
+    this.car_transform = Mat4.translation(...this.car_position).times(
+      Mat4.rotation(this.car_tilt, 0, 1, 0)
+    ); // Rotate around Y-axis
+
+    const road_left_bound = -10; // Left boundary of the road
+    const road_right_bound = 10; // Right boundary of the road
+
+    // Check if the car is within the bounds after updating its position
+    if (this.car_position[0] < road_left_bound) {
+      this.car_position[0] = road_left_bound; // Reset to left bound
+      this.car_velocity[0] = 0; // Stop the car's lateral movement
+    } else if (this.car_position[0] > road_right_bound) {
+      this.car_position[0] = road_right_bound; // Reset to right bound
+      this.car_velocity[0] = 0; // Stop the car's lateral movement
+    }
+
     // Deceleration logic (when no keys are pressed)
     if (
       this.car_acceleration.equals(vec3(0, 0, 0)) &&
@@ -119,9 +152,6 @@ export class CarGame extends Scene {
           ? Math.max(0, this.car_velocity[0] - deceleration)
           : Math.min(0, this.car_velocity[0] + deceleration);
     }
-
-    // Update the car's transformation matrix
-    this.car_transform = Mat4.translation(...this.car_position);
   }
 
   display(context, program_state) {
