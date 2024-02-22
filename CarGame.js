@@ -68,8 +68,8 @@ export class CarGame extends Scene {
     this.acceleration_rate = 5;
     this.deceleration_rate = 5;
 
-    this.car_tilt = 0;
-    this.max_tilt = Math.PI / 2; // Maximum tilt angle in radians, adjust as needed
+    this.current_tilt = 0;
+    this.target_tilt = 0;
   }
 
   make_control_panel() {
@@ -79,10 +79,12 @@ export class CarGame extends Scene {
       ["ArrowLeft"],
       () => {
         this.car_acceleration[0] = -this.acceleration_rate;
+        this.target_tilt = Math.PI / 2; // Set to desired tilt angle for left turn
       },
       undefined,
       () => {
         this.car_acceleration[0] = 0;
+        this.target_tilt = 0; // Reset to no tilt when key is released
       }
     );
     this.key_triggered_button(
@@ -90,10 +92,12 @@ export class CarGame extends Scene {
       ["ArrowRight"],
       () => {
         this.car_acceleration[0] = this.acceleration_rate;
+        this.target_tilt = -Math.PI / 2; // Set to desired tilt angle for right turn
       },
       undefined,
       () => {
         this.car_acceleration[0] = 0;
+        this.target_tilt = 0; // Reset to no tilt when key is released
       }
     );
   }
@@ -111,23 +115,20 @@ export class CarGame extends Scene {
     // Update position based on velocity
     this.car_position = this.car_position.plus(this.car_velocity.times(dt));
 
-    // Determine the tilt direction based on acceleration
-    const tiltIntensity = Math.PI / 12; // Adjust this value for the desired tilt effect
-    if (this.car_acceleration[0] > 0) {
-      // Tilting right when moving right
-      this.car_tilt = -tiltIntensity;
-    } else if (this.car_acceleration[0] < 0) {
-      // Tilting left when moving left
-      this.car_tilt = tiltIntensity;
-    } else {
-      // No tilt when not turning
-      this.car_tilt = 0;
-    }
+    //console.log(this.current_tilt);
 
-    // Update the car's transformation matrix with the new position and tilt
+    // Determine and update the tilt based on acceleration or velocity
+    const tiltIntensity = -Math.PI / 36; // Adjust for desired tilt effect
+    // Update target tilt based on direction
+    this.target_tilt = this.car_acceleration[0] * tiltIntensity;
+
+    // Smoothly interpolate current tilt towards target tilt
+    this.current_tilt += (this.target_tilt - this.current_tilt) * dt * 5; // Adjust the 5 for faster or slower interpolation
+
+    // Combine translation and rotation in the car's transformation
     this.car_transform = Mat4.translation(...this.car_position).times(
-      Mat4.rotation(this.car_tilt, 0, 1, 0)
-    ); // Rotate around Y-axis
+      Mat4.rotation(this.current_tilt, 0, 1, 0)
+    ); // Rotation around the Y-axis for tilt
 
     const road_left_bound = -10; // Left boundary of the road
     const road_right_bound = 10; // Right boundary of the road
