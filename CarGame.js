@@ -64,9 +64,10 @@ export class CarGame extends Scene {
     this.car_acceleration = vec3(0, 0, 0); // Acceleration vector
 
     // Constants
-    this.max_speed = 7;
-    this.acceleration_rate = 5;
+    this.max_speed = 10;
+    this.acceleration_rate = 12;
     this.deceleration_rate = 5;
+    this.tilt_angle = 0;
 
     this.current_tilt = 0;
     this.target_tilt = 0;
@@ -80,11 +81,13 @@ export class CarGame extends Scene {
       () => {
         this.car_acceleration[0] = -this.acceleration_rate;
         this.target_tilt = Math.PI / 2; // Set to desired tilt angle for left turn
+        this.tilt_angle = -7;
       },
       undefined,
       () => {
         this.car_acceleration[0] = 0;
         this.target_tilt = 0; // Reset to no tilt when key is released
+        this.tilt_angle = 0;
       }
     );
     this.key_triggered_button(
@@ -93,11 +96,13 @@ export class CarGame extends Scene {
       () => {
         this.car_acceleration[0] = this.acceleration_rate;
         this.target_tilt = -Math.PI / 2; // Set to desired tilt angle for right turn
+        this.tilt_angle = 7;
       },
       undefined,
       () => {
         this.car_acceleration[0] = 0;
         this.target_tilt = 0; // Reset to no tilt when key is released
+        this.tilt_angle = 0;
       }
     );
   }
@@ -120,7 +125,7 @@ export class CarGame extends Scene {
     // Determine and update the tilt based on acceleration or velocity
     const tiltIntensity = -Math.PI / 36; // Adjust for desired tilt effect
     // Update target tilt based on direction
-    this.target_tilt = this.car_acceleration[0] * tiltIntensity;
+    this.target_tilt = this.tilt_angle * tiltIntensity;
 
     // Smoothly interpolate current tilt towards target tilt
     this.current_tilt += (this.target_tilt - this.current_tilt) * dt * 5; // Adjust the 5 for faster or slower interpolation
