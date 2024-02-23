@@ -81,9 +81,6 @@ export class CarGame extends Scene {
     if (this.acceleration_rate < 0) {
       this.acceleration_rate = 0;
     }
-    if (this.deceleration_rate < 0) {
-      this.deceleration_rate = 0;
-    }
 
     console.log(this.acceleration_rate);
 
