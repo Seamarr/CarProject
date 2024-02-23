@@ -63,15 +63,36 @@ export class CarGame extends Scene {
     this.car_velocity = vec3(0, 0, 0); // Velocity vector
     this.car_acceleration = vec3(0, 0, 0); // Acceleration vector
 
-    // Constants
+    // Physics Constants
     this.max_speed = 10;
-    this.acceleration_rate = 12;
-    this.deceleration_rate = 5;
-    this.tilt_angle = 0;
 
+    this.car_mass = 9;
+    this.coefficient_of_friction = 0.2;
+    this.applied_force = 50;
+    this.braking_force = 1;
+    this.friction_force = this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
+
+    this.total_acceleration_force = this.applied_force - this.friction_force;
+    this.total_deceleration_force = this.braking_force + this.friction_force;
+
+    this.acceleration_rate = this.total_acceleration_force / this.car_mass;
+    this.deceleration_rate = this.total_deceleration_force / this.car_mass;
+
+    if (this.acceleration_rate < 0) {
+      this.acceleration_rate = 0;
+    }
+    if (this.deceleration_rate < 0) {
+      this.deceleration_rate = 0;
+    }
+
+    console.log(this.acceleration_rate);
+
+    this.tilt_angle = 0;
     this.current_tilt = 0;
     this.target_tilt = 0;
   }
+
+  calculateAcceleration(force, mass) {}
 
   make_control_panel() {
     // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
@@ -81,7 +102,7 @@ export class CarGame extends Scene {
       () => {
         this.car_acceleration[0] = -this.acceleration_rate;
         this.target_tilt = Math.PI / 2; // Set to desired tilt angle for left turn
-        this.tilt_angle = -7;
+        this.tilt_angle = -5;
       },
       undefined,
       () => {
@@ -96,10 +117,16 @@ export class CarGame extends Scene {
       () => {
         this.car_acceleration[0] = this.acceleration_rate;
         this.target_tilt = -Math.PI / 2; // Set to desired tilt angle for right turn
-        this.tilt_angle = 7;
+        this.tilt_angle = 5;
       },
       undefined,
       () => {
+        // console.log(this.car_acceleration[0]);
+        // if (this.car_acceleration[0] < 25 && this.car_acceleration[0] > -23) {
+        //   this.car_acceleration[0] = 0;
+        // } else {
+        //   this.car_acceleration[0] = -this.deceleration_rate;
+        // }
         this.car_acceleration[0] = 0;
         this.target_tilt = 0; // Reset to no tilt when key is released
         this.tilt_angle = 0;
@@ -148,10 +175,7 @@ export class CarGame extends Scene {
     }
 
     // Deceleration logic (when no keys are pressed)
-    if (
-      this.car_acceleration.equals(vec3(0, 0, 0)) &&
-      !this.car_velocity.equals(vec3(0, 0, 0))
-    ) {
+    if (this.car_acceleration[0] == 0 && !this.car_velocity[0] == 0) {
       const deceleration = this.deceleration_rate * dt;
       this.car_velocity[0] =
         this.car_velocity[0] > 0
