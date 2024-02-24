@@ -1462,16 +1462,6 @@ const Movement_Controls =
         },
         "#8B8885"
       );
-      this.new_line();
-      this.key_triggered_button(
-        "Attach to global camera",
-        ["Shift", "R"],
-        () => {
-          this.will_take_over_graphics_state = true;
-        },
-        "#8B8885"
-      );
-      this.new_line();
     }
 
     first_person_flyaround(radians_per_frame, meters_per_frame, leeway = 70) {

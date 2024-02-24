@@ -92,6 +92,8 @@ export class CarGame extends Scene {
   calculateAcceleration(force, mass) {}
 
   make_control_panel() {
+    this.control_panel.innerHTML +=
+      "Click and drag the scene to spin your viewpoint around it.<br>";
     // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
     this.key_triggered_button(
       "Move Left",
@@ -118,16 +120,185 @@ export class CarGame extends Scene {
       },
       undefined,
       () => {
-        // console.log(this.car_acceleration[0]);
-        // if (this.car_acceleration[0] < 25 && this.car_acceleration[0] > -23) {
-        //   this.car_acceleration[0] = 0;
-        // } else {
-        //   this.car_acceleration[0] = -this.deceleration_rate;
-        // }
         this.car_acceleration[0] = 0;
         this.target_tilt = 0; // Reset to no tilt when key is released
         this.tilt_angle = 0;
       }
+    );
+    this.new_line();
+    this.key_triggered_button(
+      "Move Left",
+      ["a"],
+      () => {
+        this.car_acceleration[0] = -this.acceleration_rate;
+        this.target_tilt = Math.PI / 2; // Set to desired tilt angle for left turn
+        this.tilt_angle = -5;
+      },
+      undefined,
+      () => {
+        this.car_acceleration[0] = 0;
+        this.target_tilt = 0; // Reset to no tilt when key is released
+        this.tilt_angle = 0;
+      }
+    );
+    this.key_triggered_button(
+      "Move Right",
+      ["d"],
+      () => {
+        this.car_acceleration[0] = this.acceleration_rate;
+        this.target_tilt = -Math.PI / 2; // Set to desired tilt angle for right turn
+        this.tilt_angle = 5;
+      },
+      undefined,
+      () => {
+        this.car_acceleration[0] = 0;
+        this.target_tilt = 0; // Reset to no tilt when key is released
+        this.tilt_angle = 0;
+      }
+    );
+    this.new_line();
+    const mass_controls = this.control_panel.appendChild(
+      document.createElement("span")
+    );
+    mass_controls.style.margin = "30px";
+    this.key_triggered_button(
+      "-",
+      ["o"],
+      () => {
+        this.car_mass /= 1.2;
+        this.friction_force =
+          this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
+        this.acceleration_rate = this.total_acceleration_force / this.car_mass;
+        this.deceleration_rate = this.total_deceleration_force / this.car_mass;
+        if (this.acceleration_rate < 0) {
+          this.acceleration_rate = 0;
+        }
+      },
+      undefined,
+      undefined,
+      undefined,
+      mass_controls
+    );
+    this.live_string((box) => {
+      box.textContent = "Mass(kg): " + this.car_mass.toFixed(2);
+    }, mass_controls);
+    this.key_triggered_button(
+      "+",
+      ["p"],
+      () => {
+        this.car_mass *= 1.2;
+        this.friction_force =
+          this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
+        this.acceleration_rate = this.total_acceleration_force / this.car_mass;
+        this.deceleration_rate = this.total_deceleration_force / this.car_mass;
+        if (this.acceleration_rate < 0) {
+          this.acceleration_rate = 0;
+        }
+      },
+      undefined,
+      undefined,
+      undefined,
+      mass_controls
+    );
+    this.new_line();
+    const applied_force_controls = this.control_panel.appendChild(
+      document.createElement("span")
+    );
+    applied_force_controls.style.margin = "30px";
+    this.key_triggered_button(
+      "-",
+      ["k"],
+      () => {
+        this.applied_force /= 1.2;
+        this.total_acceleration_force =
+          this.applied_force - this.friction_force;
+        this.acceleration_rate = this.total_acceleration_force / this.car_mass;
+        if (this.acceleration_rate < 0) {
+          this.acceleration_rate = 0;
+        }
+      },
+      undefined,
+      undefined,
+      undefined,
+      applied_force_controls
+    );
+    this.live_string((box) => {
+      box.textContent =
+        "Applied Force(Newtons): " + this.applied_force.toFixed(2);
+    }, applied_force_controls);
+    this.key_triggered_button(
+      "+",
+      ["l"],
+      () => {
+        this.applied_force *= 1.2;
+        this.total_acceleration_force =
+          this.applied_force - this.friction_force;
+        this.acceleration_rate = this.total_acceleration_force / this.car_mass;
+        if (this.acceleration_rate < 0) {
+          this.acceleration_rate = 0;
+        }
+      },
+      undefined,
+      undefined,
+      undefined,
+      applied_force_controls
+    );
+    this.new_line();
+    const coefficient_of_friction_controls = this.control_panel.appendChild(
+      document.createElement("span")
+    );
+    coefficient_of_friction_controls.style.margin = "30px";
+    this.key_triggered_button(
+      "-",
+      ["u"],
+      () => {
+        this.coefficient_of_friction /= 1.2;
+        this.friction_force =
+          this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
+        this.total_acceleration_force =
+          this.applied_force - this.friction_force;
+        this.total_deceleration_force =
+          this.braking_force + this.friction_force;
+
+        this.acceleration_rate = this.total_acceleration_force / this.car_mass;
+        this.deceleration_rate = this.total_deceleration_force / this.car_mass;
+
+        if (this.acceleration_rate < 0) {
+          this.acceleration_rate = 0;
+        }
+      },
+      undefined,
+      undefined,
+      undefined,
+      coefficient_of_friction_controls
+    );
+    this.live_string((box) => {
+      box.textContent =
+        "Coefficient of Friction: " + this.coefficient_of_friction.toFixed(2);
+    }, coefficient_of_friction_controls);
+    this.key_triggered_button(
+      "+",
+      ["i"],
+      () => {
+        this.coefficient_of_friction *= 1.2;
+        this.friction_force =
+          this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
+        this.total_acceleration_force =
+          this.applied_force - this.friction_force;
+        this.total_deceleration_force =
+          this.braking_force + this.friction_force;
+
+        this.acceleration_rate = this.total_acceleration_force / this.car_mass;
+        this.deceleration_rate = this.total_deceleration_force / this.car_mass;
+
+        if (this.acceleration_rate < 0) {
+          this.acceleration_rate = 0;
+        }
+      },
+      undefined,
+      undefined,
+      undefined,
+      coefficient_of_friction_controls
     );
   }
 
@@ -185,9 +356,6 @@ export class CarGame extends Scene {
     // display():  Called once per frame of animation.
     // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
     if (!context.scratchpad.controls) {
-      this.children.push(
-        (context.scratchpad.controls = new defs.Movement_Controls())
-      );
       // Define the global camera and projection matrices, which are stored in program_state.
       program_state.set_camera(this.initial_camera_location);
     }
