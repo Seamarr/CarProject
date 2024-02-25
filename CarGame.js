@@ -244,6 +244,43 @@ export class CarGame extends Scene {
       applied_force_controls
     );
     this.new_line();
+    const braking_force_controls = this.control_panel.appendChild(
+      document.createElement("span")
+    );
+    braking_force_controls.style.margin = "30px";
+    this.key_triggered_button(
+      "-",
+      ["h"],
+      () => {
+        this.braking_force /= 1.2;
+        this.total_deceleration_force =
+          this.braking_force + this.friction_force;
+        this.deceleration_rate = this.total_deceleration_force / this.car_mass;
+      },
+      undefined,
+      undefined,
+      undefined,
+      braking_force_controls
+    );
+    this.live_string((box) => {
+      box.textContent =
+        "Braking Force(Newtons): " + this.braking_force.toFixed(2);
+    }, braking_force_controls);
+    this.key_triggered_button(
+      "+",
+      ["j"],
+      () => {
+        this.braking_force *= 1.2;
+        this.total_deceleration_force =
+          this.braking_force + this.friction_force;
+        this.deceleration_rate = this.total_deceleration_force / this.car_mass;
+      },
+      undefined,
+      undefined,
+      undefined,
+      braking_force_controls
+    );
+    this.new_line();
     const coefficient_of_friction_controls = this.control_panel.appendChild(
       document.createElement("span")
     );
