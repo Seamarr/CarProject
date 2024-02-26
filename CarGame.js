@@ -1,5 +1,5 @@
 import { tiny, defs } from "./objects.js";
-import { Shape_From_File } from './examples/obj-file-demo.js';
+
 const {
   Vector,
   Vector3,
@@ -39,19 +39,13 @@ export class CarGame extends Scene {
         diffusivity: 0.6,
         color: hex_color("#ffffff"),
       }),
-<<<<<<< Updated upstream
       car: new Material(new defs.Phong_Shader(), {
         color: hex_color("#ff0000"),
         ambient: 1,
-=======
-      car: new Material(new defs.Textured_Phong(), {
-          color: color(.5, .5, .5, 1),
-          ambient: .3, diffusivity: .5, specularity: .5, texture: new Texture("assets/stars.png")
->>>>>>> Stashed changes
       }),
       road: new Material(new defs.Phong_Shader(), {
-          color: hex_color("#D3D3D3"),
-          ambient: 1,
+        color: hex_color("#D3D3D3"),
+        ambient: 1,
       }),
     };
 
@@ -369,20 +363,9 @@ export class CarGame extends Scene {
     this.current_tilt += (this.target_tilt - this.current_tilt) * dt * 5; // Adjust the 5 for faster or slower interpolation
 
     // Combine translation and rotation in the car's transformation
-<<<<<<< Updated upstream
     this.car_transform = Mat4.translation(...this.car_position).times(
       Mat4.rotation(this.current_tilt, 0, 1, 0)
     ); // Rotation around the Y-axis for tilt
-=======
-    this.car_transform = Mat4.translation(...this.car_position)
-        .times(Mat4.rotation(this.current_tilt, 0, 1, 0))
-        .times(Mat4.translation(0, 0.4, 0))
-        .times(Mat4.rotation(Math.PI/2, 1, 0, 0))
-        .times(Mat4.rotation(Math.PI, 0, 1, 0))
-        .times(Mat4.scale(2, 2, 2));
-
-    // Rotation around the Y-axis for tilt
->>>>>>> Stashed changes
 
     const road_left_bound = -10; // Left boundary of the road
     const road_right_bound = 10; // Right boundary of the road
@@ -397,7 +380,7 @@ export class CarGame extends Scene {
     }
 
     // Deceleration logic (when no keys are pressed)
-    if (this.car_acceleration[0] === 0 && !this.car_velocity[0] === 0) {
+    if (this.car_acceleration[0] == 0 && !this.car_velocity[0] == 0) {
       const deceleration = this.deceleration_rate * dt;
       this.car_velocity[0] =
         this.car_velocity[0] > 0
