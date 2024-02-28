@@ -1,23 +1,9 @@
 import { tiny, defs } from "./objects.js";
 import { Shape_From_File } from './examples/obj-file-demo.js';
 
-const {
-  Vector,
-  Vector3,
-  vec,
-  vec3,
-  vec4,
-  color,
-  hex_color,
-  Shader,
-  Matrix,
-  Mat4,
-  Light,
-  Shape,
-  Material,
-  Texture,
-  Scene,
-} = tiny;
+const { Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene, Texture, } = tiny;
+
+const {Textured_Phong} = defs
 
 export class CarGame extends Scene {
   constructor() {
@@ -31,13 +17,14 @@ export class CarGame extends Scene {
         sphere: new defs.Subdivision_Sphere(4),
         circle: new defs.Regular_2D_Polygon(1, 15),
         box: new defs.Box(2, 1, 4),
-        road: new defs.Box(20, 0.1, 500),
+        road: new defs.Cube(),
         car: new Shape_From_File("assets/10600_RC_Car_SG_v2_L3.obj"),
         tree: new defs.Box(5,10,3),
         leaves: new defs.Box(5,5,5),
     };
 
-    console.log(this.shapes.car.arrays.texture_coord)
+      this.shapes.road.arrays.texture_coord.forEach(p => p.scale_by(1));
+
     // *** Materials
     this.materials = {
       test: new Material(new defs.Phong_Shader(), {
@@ -45,13 +32,13 @@ export class CarGame extends Scene {
         diffusivity: 0.6,
         color: hex_color("#ffffff"),
       }),
-      car: new Material(new defs.Textured_Phong(1), {
-          color: color(0, 0, 0, 1),
-          ambient: .65, diffusivity: 0.1, specularity: .5, texture: new Texture("assets/stars.png")
+      car: new Material(new Textured_Phong(1), {
+          color: color(0.5, 0.5, 0.5, 1),
+          ambient: 0.8, diffusivity: 0.5, specularity: .5, texture: new Texture("assets/10600_RC_Car_SG_v1_diffuse.jpg")
       }),
-      road: new Material(new defs.Fake_Bump_Map(1), {
+      road: new Material(new Texture_Scroll_X(), {
         color: hex_color("#000000"),
-        ambient: 1, texture: new Texture("assets/track.png")
+          ambient: 1, diffusivity: 0.1, specularity: .5, texture: new Texture("assets/road.png")
       }),
       tree: new Material(new defs.Phong_Shader(), {
           color: hex_color("#964B00"),
@@ -437,9 +424,9 @@ export class CarGame extends Scene {
     const dt = program_state.animation_delta_time / 1000;
     this.update_state(dt);
 
-    const road_transform = this.road_transform.times(
-      Mat4.translation(0, -0.5, 0)
-    );
+    const road_transform = this.road_transform
+        .times(Mat4.translation(0, -7, 0))
+        .times(Mat4.scale(20, 0.1, 500));
 
     this.shapes.road.draw(
       context,
@@ -513,11 +500,92 @@ export class CarGame extends Scene {
           this.tree_transform_2 = this.tree_transform_2.times(Mat4.translation(-5, -5, 0)) // Translate to origin
               .times(Mat4.rotation(Math.PI / 2, 0, 1, 0)) // Rotate around origin
               .times(Mat4.translation(5, 5, 0)); // Translate back
-
       }
-
-
-
-
   }
+}
+
+class Texture_Scroll_X extends Textured_Phong {
+    // TODO:  Modify the shader below (right now it's just the same fragment shader as Textured_Phong) for requirement #6.
+    fragment_glsl_code() {
+        return this.shared_glsl_code() + `
+            varying vec2 f_tex_coord;
+            uniform sampler2D texture;
+            uniform float animation_time;
+            
+            void main(){ //got help in office hours for Question 6 and 8
+                vec2 slide_tex_coord; 
+                slide_tex_coord.x = f_tex_coord.x * 50.0;
+                slide_tex_coord.y = f_tex_coord.y * 0.01 + (-2.0 * animation_time);
+                // Sample the texture image in the correct place:
+                vec4 tex_color = texture2D( texture, slide_tex_coord);
+                
+                //got black box from discussion slides
+                float u = mod(slide_tex_coord.x, 1.0);
+                float v = mod(slide_tex_coord.y, 1.0);
+                //float distance_to_center = 0.25;
+                //drew a graph on a piece of paper
+                //Ex: left edge 0.3/2 < u < 0.5/2 && 0.3/2 < v < 1 - 0.3/2 
+                if (u > 0.05 && u < 0.25 && v > 0.15 && v < 0.85) { tex_color = vec4(1.0, 1.0, 1.0, 1.0); }
+                //if (u > 0.75 && u < 0.85 && v > 0.15 && v < 0.85) { tex_color = vec4(0, 0, 0, 1.0); }
+                //if (v > 0.15 && v < 0.25 && u > 0.15 && u < 0.85) { tex_color = vec4(0, 0, 0, 1.0); }
+                //if (v > 0.75 && v < 0.85 && u > 0.15 && u < 0.85) { tex_color = vec4(0, 0, 0, 1.0); }
+                
+                if( tex_color.w < .01 ) discard;
+                // Compute an initial (ambient) color:
+                gl_FragColor = vec4( ( tex_color.xyz + shape_color.xyz ) * ambient, shape_color.w * tex_color.w ); 
+                // Compute the final color with contributions from lights:
+                gl_FragColor.xyz += phong_model_lights( normalize( N ), vertex_worldspace );
+        } `;
+    }
+}
+
+
+class Texture_Rotate extends Textured_Phong {
+    // TODO:  Modify the shader below (right now it's just the same fragment shader as Textured_Phong) for requirement #7.
+    fragment_glsl_code() {
+        return this.shared_glsl_code() + `
+            varying vec2 f_tex_coord;
+            uniform sampler2D texture;
+            uniform float animation_time;
+            void main(){ //got help in office hours for Question 7 and 8
+                //dt * 10 * (2*Math.PI/60)
+                float angle = 20.0 * (2.0 * 3.14159265359 / 60.0) * animation_time; 
+                mat4 rot_matrix = mat4(
+                    vec4(cos(angle), sin(angle), 0.0, 0.0),
+                    vec4(sin(angle), -cos(angle), 0.0, 0.0),
+                    vec4( 0.0, 0.0, 1.0, 0.0), 
+                    vec4( 0.0, 0.0, 0.0, 1.0)
+                    );
+                //logic: translate to origin, rotate, inverse translate
+                //inspired by parts of the discussion
+                vec4 rot_tex_coord; 
+                rot_tex_coord.x = f_tex_coord.x - 0.5;
+                rot_tex_coord.y = f_tex_coord.y - 0.5;
+                rot_tex_coord.z = 1.0;
+                rot_tex_coord.w = 1.0;
+                rot_tex_coord = (rot_matrix * rot_tex_coord);
+                rot_tex_coord.x = rot_tex_coord.x + 0.5;
+                rot_tex_coord.y = rot_tex_coord.y + 0.5;
+                // Sample the texture image in the correct place:
+                
+                vec4 tex_color = texture2D( texture, rot_tex_coord.xy );
+                
+                //got black box from discussion slides
+                float u = mod(rot_tex_coord.x, 1.0);
+                float v = mod(rot_tex_coord.y, 1.0);
+                //float distance_to_center = 0.25;
+                //drew a graph on a piece of paper
+                //Ex: left edge 0.3/2 < u < 0.5/2 && 0.3/2 < v < 1 - 0.3/2 
+                if (u > 0.15 && u < 0.25 && v > 0.15 && v < 0.85) { tex_color = vec4(0, 0, 0, 1.0); }
+                if (u > 0.75 && u < 0.85 && v > 0.15 && v < 0.85) { tex_color = vec4(0, 0, 0, 1.0); }
+                if (v > 0.15 && v < 0.25 && u > 0.15 && u < 0.85) { tex_color = vec4(0, 0, 0, 1.0); }
+                if (v > 0.75 && v < 0.85 && u > 0.15 && u < 0.85) { tex_color = vec4(0, 0, 0, 1.0); }
+                
+                if( tex_color.w < .01 ) discard;
+                                                                         // Compute an initial (ambient) color:
+                gl_FragColor = vec4( ( tex_color.xyz + shape_color.xyz ) * ambient, shape_color.w * tex_color.w ); 
+                                                                         // Compute the final color with contributions from lights:
+                gl_FragColor.xyz += phong_model_lights( normalize( N ), vertex_worldspace );
+        } `;
+    }
 }
