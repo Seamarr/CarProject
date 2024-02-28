@@ -32,11 +32,12 @@ export class CarGame extends Scene {
         circle: new defs.Regular_2D_Polygon(1, 15),
         box: new defs.Box(2, 1, 4),
         road: new defs.Box(20, 0.1, 500),
-        car: new Shape_From_File("assets/10600_RC_ Car_SG_v2_L3.obj"),
+        car: new Shape_From_File("assets/10600_RC_Car_SG_v2_L3.obj"),
         tree: new defs.Box(5,10,3),
         leaves: new defs.Box(5,5,5),
     };
 
+    console.log(this.shapes.car.arrays.texture_coord)
     // *** Materials
     this.materials = {
       test: new Material(new defs.Phong_Shader(), {
@@ -44,13 +45,13 @@ export class CarGame extends Scene {
         diffusivity: 0.6,
         color: hex_color("#ffffff"),
       }),
-      car: new Material(new defs.Textured_Phong(), {
-          color: color(.5, .5, .5, 1),
-          ambient: .3, diffusivity: .5, specularity: .5, texture: new Texture("assets/stars.png")
+      car: new Material(new defs.Textured_Phong(1), {
+          color: color(0, 0, 0, 1),
+          ambient: .65, diffusivity: 0.1, specularity: .5, texture: new Texture("assets/stars.png")
       }),
-      road: new Material(new defs.Phong_Shader(), {
-        color: hex_color("#D3D3D3"),
-        ambient: 1,
+      road: new Material(new defs.Fake_Bump_Map(1), {
+        color: hex_color("#000000"),
+        ambient: 1, texture: new Texture("assets/track.png")
       }),
       tree: new Material(new defs.Phong_Shader(), {
           color: hex_color("#964B00"),
@@ -384,13 +385,12 @@ export class CarGame extends Scene {
 
     // Combine translation and rotation in the car's transformation
     this.car_transform = Mat4.translation(...this.car_position)
-                             .times(Mat4.rotation(this.current_tilt, 0, 1, 0)
-                                 .times(Mat4.translation(0, 0.4, 0))
-                             .times(Mat4.rotation(Math.PI/2, 1, 0, 0))
-                             .times(Mat4.rotation(Math.PI, 0, 1, 0))
-                             .times(Mat4.scale(2, 2, 2))
-
-    ); // Rotation around the Y-axis for tilt
+        .times(Mat4.rotation(this.current_tilt, 0, 1, 0))
+        .times(Mat4.translation(0, 0.7, 0))
+        .times(Mat4.rotation(Math.PI/2, 1, 0, 0))
+        .times(Mat4.rotation(Math.PI, 0, 1, 0))
+        .times(Mat4.scale(2, 2, 2));
+      // Rotation around the Y-axis for tilt
 
     const road_left_bound = -10; // Left boundary of the road
     const road_right_bound = 10; // Right boundary of the road
@@ -405,7 +405,7 @@ export class CarGame extends Scene {
     }
 
     // Deceleration logic (when no keys are pressed)
-    if (this.car_acceleration[0] == 0 && !this.car_velocity[0] == 0) {
+    if (this.car_acceleration[0] === 0 && !this.car_velocity[0] === 0) {
       const deceleration = this.deceleration_rate * dt;
       this.car_velocity[0] =
         this.car_velocity[0] > 0
