@@ -316,7 +316,10 @@ export class CarGame extends Scene {
       "-",
       ["u"],
       () => {
-        this.coefficient_of_friction /= 1.2;
+        this.coefficient_of_friction -= 0.1;
+        if (this.coefficient_of_friction < 0) {
+          this.coefficient_of_friction = 0;
+        }
         this.friction_force =
           this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
         this.total_acceleration_force =
@@ -344,7 +347,10 @@ export class CarGame extends Scene {
       "+",
       ["i"],
       () => {
-        this.coefficient_of_friction *= 1.2;
+        if (this.coefficient_of_friction > 1.0) {
+          this.coefficient_of_friction = 1.0;
+        }
+        this.coefficient_of_friction += 0.1;
         this.friction_force =
           this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
         this.total_acceleration_force =
