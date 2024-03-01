@@ -1,5 +1,5 @@
 import { tiny, defs } from "./objects.js";
-import { Shape_From_File } from './examples/obj-file-demo.js';
+import { Shape_From_File } from "./examples/obj-file-demo.js";
 
 const {
   Vector,
@@ -32,7 +32,7 @@ export class CarGame extends Scene {
       circle: new defs.Regular_2D_Polygon(1, 15),
       box: new defs.Box(2, 1, 4),
       road: new defs.Box(20, 0.1, 500),
-      car: new Shape_From_File("assets/10600_RC_ Car_SG_v2_L3.obj")
+      car: new Shape_From_File("assets/10600_RC_ Car_SG_v2_L3.obj"),
     };
 
     // *** Materials
@@ -43,8 +43,11 @@ export class CarGame extends Scene {
         color: hex_color("#ffffff"),
       }),
       car: new Material(new defs.Textured_Phong(), {
-          color: color(.5, .5, .5, 1),
-          ambient: .3, diffusivity: .5, specularity: .5, texture: new Texture("assets/stars.png")
+        color: color(0.5, 0.5, 0.5, 1),
+        ambient: 0.3,
+        diffusivity: 0.5,
+        specularity: 0.5,
+        texture: new Texture("assets/stars.png"),
       }),
       road: new Material(new defs.Phong_Shader(), {
         color: hex_color("#D3D3D3"),
@@ -292,7 +295,10 @@ export class CarGame extends Scene {
       "-",
       ["u"],
       () => {
-        this.coefficient_of_friction /= 1.2;
+        this.coefficient_of_friction -= 0.05;
+        if (this.coefficient_of_friction < 0) {
+          this.coefficient_of_friction = 0;
+        }
         this.friction_force =
           this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
         this.total_acceleration_force =
@@ -320,7 +326,10 @@ export class CarGame extends Scene {
       "+",
       ["i"],
       () => {
-        this.coefficient_of_friction *= 1.2;
+        this.coefficient_of_friction += 0.05;
+        if (this.coefficient_of_friction > 1.0) {
+          this.coefficient_of_friction = 1.0;
+        }
         this.friction_force =
           this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
         this.total_acceleration_force =
@@ -366,13 +375,12 @@ export class CarGame extends Scene {
     this.current_tilt += (this.target_tilt - this.current_tilt) * dt * 5; // Adjust the 5 for faster or slower interpolation
 
     // Combine translation and rotation in the car's transformation
-    this.car_transform = Mat4.translation(...this.car_position)
-                             .times(Mat4.rotation(this.current_tilt, 0, 1, 0)
-                                 .times(Mat4.translation(0, 0.4, 0))
-                             .times(Mat4.rotation(Math.PI/2, 1, 0, 0))
-                             .times(Mat4.rotation(Math.PI, 0, 1, 0))
-                             .times(Mat4.scale(2, 2, 2))
-
+    this.car_transform = Mat4.translation(...this.car_position).times(
+      Mat4.rotation(this.current_tilt, 0, 1, 0)
+        .times(Mat4.translation(0, 0.4, 0))
+        .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
+        .times(Mat4.rotation(Math.PI, 0, 1, 0))
+        .times(Mat4.scale(2, 2, 2))
     ); // Rotation around the Y-axis for tilt
 
     const road_left_bound = -10; // Left boundary of the road
