@@ -32,6 +32,8 @@ export class CarGame extends Scene {
       circle: new defs.Regular_2D_Polygon(1, 15),
       box: new defs.Box(2, 1, 4),
       road: new defs.Box(20, 0.1, 500),
+      tree: new defs.Box(5, 10, 3),
+      leaves: new defs.Box(5, 5, 5),
       car: new Shape_From_File("assets/10600_RC_ Car_SG_v2_L3.obj"),
     };
 
@@ -53,6 +55,14 @@ export class CarGame extends Scene {
         color: hex_color("#D3D3D3"),
         ambient: 1,
       }),
+      tree: new Material(new defs.Phong_Shader(), {
+        color: hex_color("#964B00"),
+        ambient: 1,
+      }),
+      leaves: new Material(new defs.Phong_Shader(), {
+        color: hex_color("#00FF00"),
+        ambient: 1,
+      }),
     };
 
     this.initial_camera_location = Mat4.look_at(
@@ -61,8 +71,13 @@ export class CarGame extends Scene {
       vec3(0, 1, 0)
     );
 
+    this.time_elapsed_1 = 0;
+    this.time_elapsed_2 = 0;
+
     this.car_transform = Mat4.identity();
     this.road_transform = Mat4.identity();
+    this.tree_transform_1 = Mat4.identity();
+    this.tree_transform_2 = Mat4.identity();
 
     // Movement state
     this.car_position = vec3(0, 0, 0); // Use a vector to represent position
@@ -445,5 +460,89 @@ export class CarGame extends Scene {
       this.car_transform,
       this.materials.car
     );
+
+    const original_tree_position_1 = -140;
+    const original_tree_position_2 = -200;
+
+    this.tree_transform_1 = this.road_transform.times(
+      Mat4.translation(18, 0, original_tree_position_1)
+    );
+
+    if (
+      5 * (t - this.time_elapsed_1) <=
+      Math.abs(original_tree_position_1) / this.acceleration_rate + 2
+    ) {
+      this.tree_transform_1 = this.tree_transform_1.times(
+        Mat4.translation(
+          0,
+          0,
+          5 * this.acceleration_rate * (t - this.time_elapsed_1)
+        )
+      );
+    } else {
+      this.time_elapsed_1 = t;
+    }
+    this.shapes.tree.draw(
+      context,
+      program_state,
+      this.tree_transform_1,
+      this.materials.tree
+    );
+
+    this.tree_transform_2 = this.road_transform.times(
+      Mat4.translation(-18, 0, original_tree_position_2)
+    );
+
+    if (
+      5 * (t - this.time_elapsed_2) <=
+      Math.abs(original_tree_position_2) / this.acceleration_rate + 2
+    ) {
+      this.tree_transform_2 = this.tree_transform_2.times(
+        Mat4.translation(
+          0,
+          0,
+          5 * this.acceleration_rate * (t - this.time_elapsed_2)
+        )
+      );
+    } else {
+      this.time_elapsed_2 = t;
+    }
+    this.shapes.tree.draw(
+      context,
+      program_state,
+      this.tree_transform_2,
+      this.materials.tree
+    );
+
+    this.tree_transform_1 = this.tree_transform_1.times(
+      Mat4.translation(-5, 5, 0)
+    );
+    this.tree_transform_2 = this.tree_transform_2.times(
+      Mat4.translation(5, 5, 0)
+    );
+
+    for (let i = 0; i < 4; i++) {
+      this.shapes.leaves.draw(
+        context,
+        program_state,
+        this.tree_transform_1,
+        this.materials.leaves
+      );
+      this.shapes.leaves.draw(
+        context,
+        program_state,
+        this.tree_transform_2,
+        this.materials.leaves
+      );
+      this.tree_transform_1 = this.tree_transform_1
+        .times(Mat4.translation(5, 0, 0)) // Translate to origin
+        .times(Mat4.rotation(Math.PI / 2, 0, 1, 0)) // Rotate around origin
+        .times(Mat4.translation(-5, 0, 0)); // Translate back
+
+      this.tree_transform_2 = this.tree_transform_2
+        .times(Mat4.translation(-5, -5, 0)) // Translate to origin
+        .times(Mat4.rotation(Math.PI / 2, 0, 1, 0)) // Rotate around origin
+        .times(Mat4.translation(5, 5, 0)); // Translate back
+    }
   }
 }
