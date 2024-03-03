@@ -1,5 +1,5 @@
 import { tiny, defs } from "./objects.js";
-import { Shape_From_File } from "./examples/obj-file-demo.js";
+import { Shapes_From_File } from "./object_loader.js";
 
 const {
   Vector,
@@ -34,7 +34,7 @@ export class CarGame extends Scene {
       road: new defs.Box(20, 0.1, 500),
       tree: new defs.Box(5, 10, 3),
       leaves: new defs.Box(5, 5, 5),
-      car: new Shape_From_File("assets/Tesla Cybertruck Cyberbeast AWD 2024.obj"),
+      car: new Shapes_From_File("assets/Car.obj"),
     };
 
     // *** Materials
@@ -44,9 +44,9 @@ export class CarGame extends Scene {
         diffusivity: 0.6,
         color: hex_color("#ffffff"),
       }),
-      car: new Material(new defs.Textured_Phong(), {
-        color: color(0.0, 0.0, 0.0, 1),
-        ambient: 0.85,
+      car: new Material(new defs.Textured_Phong(1), {
+        color: color(0, 0, 0, 1),
+        ambient: .9, diffusivity: .5, specularity: .5, texture: new Texture("assets/stars.png")
       }),
       road: new Material(new defs.Phong_Shader(), {
         color: hex_color("#D3D3D3"),
@@ -388,12 +388,12 @@ export class CarGame extends Scene {
 
     // Combine translation and rotation in the car's transformation
     this.car_transform = Mat4.translation(...this.car_position).times(
-      Mat4.rotation(this.current_tilt, 0, 1, 0)
-        .times(Mat4.translation(0, 0.4, 0))
-        .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
+      Mat4.rotation(this.current_tilt, 0, 1, 0))
         .times(Mat4.rotation(Math.PI, 0, 1, 0))
-        .times(Mat4.scale(2, 2, 2))
-    ); // Rotation around the Y-axis for tilt
+        .times(Mat4.scale(1.2, 1.2, 1.2));
+        //.times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
+        //.times(Mat4.rotation(Math.PI, 0, 1, 0))
+     // Rotation around the Y-axis for tilt
 
     const road_left_bound = -10; // Left boundary of the road
     const road_right_bound = 10; // Right boundary of the road
