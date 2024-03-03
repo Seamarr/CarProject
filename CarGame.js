@@ -34,7 +34,7 @@ export class CarGame extends Scene {
       road: new defs.Box(20, 0.1, 500),
       tree: new defs.Box(5, 10, 3),
       leaves: new defs.Box(5, 5, 5),
-      car: new Shape_From_File("assets/10600_RC_ Car_SG_v2_L3.obj"),
+      car: new Shape_From_File("assets/Tesla Cybertruck Cyberbeast AWD 2024.obj"),
     };
 
     // *** Materials
@@ -45,11 +45,8 @@ export class CarGame extends Scene {
         color: hex_color("#ffffff"),
       }),
       car: new Material(new defs.Textured_Phong(), {
-        color: color(0.5, 0.5, 0.5, 1),
-        ambient: 0.3,
-        diffusivity: 0.5,
-        specularity: 0.5,
-        texture: new Texture("assets/stars.png"),
+        color: color(0.0, 0.0, 0.0, 1),
+        ambient: 0.85,
       }),
       road: new Material(new defs.Phong_Shader(), {
         color: hex_color("#D3D3D3"),
