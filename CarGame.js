@@ -32,13 +32,13 @@ export class CarGame extends Scene {
         diffusivity: 0.6,
         color: hex_color("#ffffff"),
       }),
-      car: new Material(new Textured_Phong(1), {
+      car: new Material(new Textured_Phong(), {
           color: color(0.5, 0.5, 0.5, 1),
           ambient: 0.8, diffusivity: 0.5, specularity: .5, texture: new Texture("assets/10600_RC_Car_SG_v1_diffuse.jpg")
       }),
       road: new Material(new Texture_Scroll_X(), {
         color: hex_color("#000000"),
-          ambient: 1, diffusivity: 0.1, specularity: .5, texture: new Texture("assets/road.png")
+          ambient: 1, diffusivity: 0.1, specularity: .5, texture: new Texture("assets/road.png", "LINEAR_MIPMAP_LINEAR")
       }),
       tree: new Material(new defs.Phong_Shader(), {
           color: hex_color("#964B00"),
@@ -515,17 +515,16 @@ class Texture_Scroll_X extends Textured_Phong {
             void main(){ //got help in office hours for Question 6 and 8
                 vec2 slide_tex_coord; 
                 slide_tex_coord.x = f_tex_coord.x * 50.0;
-                slide_tex_coord.y = f_tex_coord.y * 0.01 + (-2.0 * animation_time);
+                slide_tex_coord.y = f_tex_coord.y * 0.01 + (-2.0 * animation_time)*100.0;
                 // Sample the texture image in the correct place:
                 vec4 tex_color = texture2D( texture, slide_tex_coord);
                 
                 //got black box from discussion slides
-                float u = mod(slide_tex_coord.x, 1.0);
-                float v = mod(slide_tex_coord.y, 1.0);
-                //float distance_to_center = 0.25;
-                //drew a graph on a piece of paper
+                float u = mod(slide_tex_coord.x / 50.0, 1.0);
+                float v = mod(slide_tex_coord.y * 100.0, 1.0);
+                
                 //Ex: left edge 0.3/2 < u < 0.5/2 && 0.3/2 < v < 1 - 0.3/2 
-                if (u > 0.05 && u < 0.25 && v > 0.15 && v < 0.85) { tex_color = vec4(1.0, 1.0, 1.0, 1.0); }
+                if (u > 0.48 && u < 0.52 && v > 0.4 && v < 0.45) { tex_color = vec4(1.0, 1.0, 1.0, 1.0); }
                 //if (u > 0.75 && u < 0.85 && v > 0.15 && v < 0.85) { tex_color = vec4(0, 0, 0, 1.0); }
                 //if (v > 0.15 && v < 0.25 && u > 0.15 && u < 0.85) { tex_color = vec4(0, 0, 0, 1.0); }
                 //if (v > 0.75 && v < 0.85 && u > 0.15 && u < 0.85) { tex_color = vec4(0, 0, 0, 1.0); }
