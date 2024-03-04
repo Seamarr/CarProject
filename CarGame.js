@@ -10,14 +10,34 @@ export class CarGame extends Scene {
 
     // At the beginning of our program, load one of each of these shape definitions onto the GPU.
     this.shapes = {
-      box: new defs.Box(2, 1, 4),
-      //road: new defs.Box(20, 0.1, 500),
-      road: new defs.Cube(),
-      tree: new defs.Box(5, 10, 3),
-      leaves: new defs.Box(5, 5, 5),
-      car: new Shapes_From_File("assets/Car.obj"),
-      car2: new Shapes_From_File("assets/Car2.obj"),
+        box: new defs.Box(2, 1, 4),
+        //road: new defs.Box(20, 0.1, 500),
+        road: new defs.Cube(),
+        tree: new defs.Box(5, 10, 3),
+        leaves: new defs.Box(5, 5, 5),
+        car: new Shapes_From_File("assets/Car.obj"),
+        car2: new Shapes_From_File("assets/Car2.obj"),
+        car3: new Shapes_From_File("assets/Car3.obj"),
+        car4: new Shapes_From_File("assets/Car4.obj"),
+        car5: new Shapes_From_File("assets/Car5.obj"),
+        car6: new Shapes_From_File("assets/Car6.obj"),
+        car7: new Shapes_From_File("assets/Car7.obj"),
     };
+
+    this.cars = [
+        { car: new Shapes_From_File("assets/Car.obj") },
+        { car: new Shapes_From_File("assets/Car2.obj") },
+        { car: new Shapes_From_File("assets/Car3.obj") },
+        { car: new Shapes_From_File("assets/Car4.obj") },
+        { car: new Shapes_From_File("assets/Car5.obj") },
+        { car: new Shapes_From_File("assets/Car6.obj") },
+        { car: new Shapes_From_File("assets/Car7.obj") },
+    ];
+
+    this.randomCarNum = Math.round(Math.random() * 8);
+    this.randomCarNum2 = Math.round(Math.random() * 8);
+    this.randomCarNum3 = Math.round(Math.random() * 8);
+    this.randomCarNum4 = Math.round(Math.random() * 8);
 
     // *** Materials
     this.materials = {
@@ -54,6 +74,11 @@ export class CarGame extends Scene {
     this.time_elapsed_3 = 0;
 
     this.car_transform = Mat4.identity();
+    this.traffic_transform = [
+        this.car_transform = Mat4.identity(),
+        this.car_transform = Mat4.identity(),
+        this.car_transform = Mat4.identity(),
+    ];
     this.car2_transform = Mat4.identity();
     this.road_transform = Mat4.identity().times(Mat4.scale(10, 0.1, 250));
     this.tree_transform_1 = Mat4.identity();
@@ -160,6 +185,11 @@ export class CarGame extends Scene {
           this.tilt_angle = 0;
       }}
     );
+      this.key_triggered_button(
+          "Restart Game",
+          ["r"],
+          () => { this.restart(); }
+      );
     this.new_line();
     const mass_controls = this.control_panel.appendChild(
       document.createElement("span")
@@ -168,16 +198,16 @@ export class CarGame extends Scene {
     this.key_triggered_button(
       "-",
       ["o"],
-      () => {
-        this.car_mass /= 1.2;
-        this.friction_force =
-          this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
-        this.acceleration_rate = this.total_acceleration_force / this.car_mass;
-        this.deceleration_rate = this.total_deceleration_force / this.car_mass;
-        if (this.acceleration_rate < 0) {
-          this.acceleration_rate = 0;
-        }
-      },
+      () => { if (!this.collision_detected) {
+          this.car_mass /= 1.2;
+          this.friction_force =
+              this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
+          this.acceleration_rate = this.total_acceleration_force / this.car_mass;
+          this.deceleration_rate = this.total_deceleration_force / this.car_mass;
+          if (this.acceleration_rate < 0) {
+              this.acceleration_rate = 0;
+          }
+      }},
       undefined,
       undefined,
       undefined,
@@ -189,16 +219,16 @@ export class CarGame extends Scene {
     this.key_triggered_button(
       "+",
       ["p"],
-      () => {
-        this.car_mass *= 1.2;
-        this.friction_force =
-          this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
-        this.acceleration_rate = this.total_acceleration_force / this.car_mass;
-        this.deceleration_rate = this.total_deceleration_force / this.car_mass;
-        if (this.acceleration_rate < 0) {
-          this.acceleration_rate = 0;
-        }
-      },
+      () => { if (!this.collision_detected) {
+          this.car_mass *= 1.2;
+          this.friction_force =
+              this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
+          this.acceleration_rate = this.total_acceleration_force / this.car_mass;
+          this.deceleration_rate = this.total_deceleration_force / this.car_mass;
+          if (this.acceleration_rate < 0) {
+              this.acceleration_rate = 0;
+          }
+      }},
       undefined,
       undefined,
       undefined,
@@ -212,15 +242,15 @@ export class CarGame extends Scene {
     this.key_triggered_button(
       "-",
       ["k"],
-      () => {
-        this.applied_force /= 1.2;
-        this.total_acceleration_force =
-          this.applied_force - this.friction_force;
-        this.acceleration_rate = this.total_acceleration_force / this.car_mass;
-        if (this.acceleration_rate < 0) {
-          this.acceleration_rate = 0;
-        }
-      },
+      () => { if (!this.collision_detected) {
+          this.applied_force /= 1.2;
+          this.total_acceleration_force =
+              this.applied_force - this.friction_force;
+          this.acceleration_rate = this.total_acceleration_force / this.car_mass;
+          if (this.acceleration_rate < 0) {
+              this.acceleration_rate = 0;
+          }
+      }},
       undefined,
       undefined,
       undefined,
@@ -233,15 +263,15 @@ export class CarGame extends Scene {
     this.key_triggered_button(
       "+",
       ["l"],
-      () => {
-        this.applied_force *= 1.2;
-        this.total_acceleration_force =
-          this.applied_force - this.friction_force;
-        this.acceleration_rate = this.total_acceleration_force / this.car_mass;
-        if (this.acceleration_rate < 0) {
-          this.acceleration_rate = 0;
-        }
-      },
+      () => { if (!this.collision_detected) {
+          this.applied_force *= 1.2;
+          this.total_acceleration_force =
+              this.applied_force - this.friction_force;
+          this.acceleration_rate = this.total_acceleration_force / this.car_mass;
+          if (this.acceleration_rate < 0) {
+              this.acceleration_rate = 0;
+          }
+      }},
       undefined,
       undefined,
       undefined,
@@ -255,12 +285,12 @@ export class CarGame extends Scene {
     this.key_triggered_button(
       "-",
       ["h"],
-      () => {
-        this.braking_force /= 1.2;
-        this.total_deceleration_force =
-          this.braking_force + this.friction_force;
-        this.deceleration_rate = this.total_deceleration_force / this.car_mass;
-      },
+      () => { if (!this.collision_detected) {
+          this.braking_force /= 1.2;
+          this.total_deceleration_force =
+              this.braking_force + this.friction_force;
+          this.deceleration_rate = this.total_deceleration_force / this.car_mass;
+      }},
       undefined,
       undefined,
       undefined,
@@ -273,12 +303,12 @@ export class CarGame extends Scene {
     this.key_triggered_button(
       "+",
       ["j"],
-      () => {
-        this.braking_force *= 1.2;
-        this.total_deceleration_force =
-          this.braking_force + this.friction_force;
-        this.deceleration_rate = this.total_deceleration_force / this.car_mass;
-      },
+      () => { if (!this.collision_detected) {
+          this.braking_force *= 1.2;
+          this.total_deceleration_force =
+              this.braking_force + this.friction_force;
+          this.deceleration_rate = this.total_deceleration_force / this.car_mass;
+      }},
       undefined,
       undefined,
       undefined,
@@ -292,25 +322,25 @@ export class CarGame extends Scene {
     this.key_triggered_button(
       "-",
       ["u"],
-      () => {
-        this.coefficient_of_friction -= 0.05;
-        if (this.coefficient_of_friction < 0) {
-          this.coefficient_of_friction = 0;
-        }
-        this.friction_force =
-          this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
-        this.total_acceleration_force =
-          this.applied_force - this.friction_force;
-        this.total_deceleration_force =
-          this.braking_force + this.friction_force;
+      () => { if (!this.collision_detected) {
+          this.coefficient_of_friction -= 0.05;
+          if (this.coefficient_of_friction < 0) {
+              this.coefficient_of_friction = 0;
+          }
+          this.friction_force =
+              this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
+          this.total_acceleration_force =
+              this.applied_force - this.friction_force;
+          this.total_deceleration_force =
+              this.braking_force + this.friction_force;
 
-        this.acceleration_rate = this.total_acceleration_force / this.car_mass;
-        this.deceleration_rate = this.total_deceleration_force / this.car_mass;
+          this.acceleration_rate = this.total_acceleration_force / this.car_mass;
+          this.deceleration_rate = this.total_deceleration_force / this.car_mass;
 
-        if (this.acceleration_rate < 0) {
-          this.acceleration_rate = 0;
-        }
-      },
+          if (this.acceleration_rate < 0) {
+              this.acceleration_rate = 0;
+          }
+      }},
       undefined,
       undefined,
       undefined,
@@ -323,25 +353,25 @@ export class CarGame extends Scene {
     this.key_triggered_button(
       "+",
       ["i"],
-      () => {
-        this.coefficient_of_friction += 0.05;
-        if (this.coefficient_of_friction > 1.0) {
-          this.coefficient_of_friction = 1.0;
-        }
-        this.friction_force =
-          this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
-        this.total_acceleration_force =
-          this.applied_force - this.friction_force;
-        this.total_deceleration_force =
-          this.braking_force + this.friction_force;
+      () => { if (!this.collision_detected) {
+          this.coefficient_of_friction += 0.05;
+          if (this.coefficient_of_friction > 1.0) {
+              this.coefficient_of_friction = 1.0;
+          }
+          this.friction_force =
+              this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
+          this.total_acceleration_force =
+              this.applied_force - this.friction_force;
+          this.total_deceleration_force =
+              this.braking_force + this.friction_force;
 
-        this.acceleration_rate = this.total_acceleration_force / this.car_mass;
-        this.deceleration_rate = this.total_deceleration_force / this.car_mass;
+          this.acceleration_rate = this.total_acceleration_force / this.car_mass;
+          this.deceleration_rate = this.total_deceleration_force / this.car_mass;
 
-        if (this.acceleration_rate < 0) {
-          this.acceleration_rate = 0;
-        }
-      },
+          if (this.acceleration_rate < 0) {
+              this.acceleration_rate = 0;
+          }
+      }},
       undefined,
       undefined,
       undefined,
@@ -349,59 +379,154 @@ export class CarGame extends Scene {
     );
   }
 
+  generate_traffic(context, program_state, t) {
+      if(!this.collision_detected) {
+          const trafficZ = -200;
+          //this.traffic_transform[i].car_transform = Mat4.translation(0, 0.6, -50).times(Mat4.scale(1.25, 1.25, 1.25)); middle lane
+          //this.traffic_transform[i].car_transform = Mat4.translation(-5, 0.6, -50).times(Mat4.scale(1.25, 1.25, 1.25)); left lane
+          //this.traffic_transform[i].car_transform = Mat4.translation(5, 0.6, -50).times(Mat4.scale(1.25, 1.25, 1.25)); right lane
+          for(let i = 0; i < this.traffic_transform.length; i++) {
+              this.traffic_transform[i].car_transform = Mat4.translation(5, 0.6, trafficZ).times(Mat4.scale(1.25, 1.25, 1.25));
+          }
+
+          if (
+              5 * (t - this.time_elapsed_1) <=
+              Math.abs(trafficZ) / this.acceleration_rate + 2
+          ) {
+              this.traffic_transform[1].car_transform = this.traffic_transform[1].car_transform.times(
+                  Mat4.translation(
+                      0,
+                      0,
+                      5 * this.acceleration_rate * (t - this.time_elapsed_1)
+                  )
+              );
+          } else {
+              this.time_elapsed_1 = t;
+          }
+      }
+
+      this.cars[this.randomCarNum2].car.draw(
+          context,
+          program_state,
+          this.traffic_transform[1].car_transform,
+          this.materials.car
+      );
+  }
+
+  checkCollision() {
+      const car_pos = this.car_transform.times(vec4(0, 0, 0, 1)); //get a snapshot of the car position
+      for (let i = 0; i < this.traffic_transform.length; i++) {
+          const traffic_pos = this.traffic_transform[i].car_transform.times(vec4(0, 0, 0, 1));
+          const distance = Math.sqrt(
+              Math.pow(car_pos[0] - traffic_pos[0], 2) +
+              Math.pow(car_pos[1] - traffic_pos[1], 2) +
+              Math.pow(car_pos[2] - traffic_pos[2], 2)
+          );
+          if (distance < this.collision_threshold) {
+              this.collision_detected = true;
+              this.materials.road.shader.uniforms.stop_texture_update = 1; // Stop texture update
+              this.materials.road.shader.uniforms.offset = 0;
+              break;
+          }
+      }
+  }
+
+  restart() {
+      this.time_elapsed_1 = 0;
+      this.time_elapsed_2 = 0;
+      this.time_elapsed_3 = 0;
+
+      this.car_transform = Mat4.identity();
+      this.traffic_transform = [
+          this.car_transform = Mat4.identity(),
+          this.car_transform = Mat4.identity(),
+          this.car_transform = Mat4.identity(),
+      ];
+      // Movement state
+      this.car_position = vec3(0, 0, 0); // Use a vector to represent position
+      this.car_velocity = vec3(0, 0, 0); // Velocity vector
+      this.car_acceleration = vec3(0, 0, 0); // Acceleration vector
+
+      // Physics Constants
+      this.max_speed = 10;
+
+      this.car_mass = 9;
+      this.coefficient_of_friction = 0.2;
+      this.applied_force = 50;
+      this.braking_force = 1;
+      this.friction_force = this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
+
+      this.total_acceleration_force = this.applied_force - this.friction_force;
+      this.total_deceleration_force = this.braking_force + this.friction_force;
+
+      this.acceleration_rate = this.total_acceleration_force / this.car_mass;
+      this.deceleration_rate = this.total_deceleration_force / this.car_mass;
+
+      if (this.acceleration_rate < 0) {
+          this.acceleration_rate = 0;
+      }
+
+      this.collision_detected = false;
+
+      this.tilt_angle = 0;
+      this.current_tilt = 0;
+      this.target_tilt = 0;
+
+      this.materials.road.shader.uniforms.stop_update = 0;
+      //this.materials.road.shader.uniforms.animation_time = 0;
+  }
+
   update_state(dt) {
-    // Update velocity based on acceleration
-    this.car_velocity = this.car_velocity.plus(this.car_acceleration.times(dt));
+      // Update velocity based on acceleration
+      this.car_velocity = this.car_velocity.plus(this.car_acceleration.times(dt));
 
-    // Clamp velocity to the max speed
-    this.car_velocity[0] = Math.max(
-      Math.min(this.car_velocity[0], this.max_speed),
-      -this.max_speed
-    );
+      // Clamp velocity to the max speed
+      this.car_velocity[0] = Math.max(
+        Math.min(this.car_velocity[0], this.max_speed),
+        -this.max_speed
+      );
 
-    // Update position based on velocity
-    this.car_position = this.car_position.plus(this.car_velocity.times(dt));
+      // Update position based on velocity
+      this.car_position = this.car_position.plus(this.car_velocity.times(dt));
 
-    //console.log(this.current_tilt);
+      //console.log(this.current_tilt);
 
-    // Determine and update the tilt based on acceleration or velocity
-    const tiltIntensity = -Math.PI / 36; // Adjust for desired tilt effect
-    // Update target tilt based on direction
-    this.target_tilt = this.tilt_angle * tiltIntensity;
+      // Determine and update the tilt based on acceleration or velocity
+      const tiltIntensity = -Math.PI / 36; // Adjust for desired tilt effect
+      // Update target tilt based on direction
+      this.target_tilt = this.tilt_angle * tiltIntensity;
 
-    // Smoothly interpolate current tilt towards target tilt
-    this.current_tilt += (this.target_tilt - this.current_tilt) * dt * 5; // Adjust the 5 for faster or slower interpolation
+      // Smoothly interpolate current tilt towards target tilt
+      this.current_tilt += (this.target_tilt - this.current_tilt) * dt * 5; // Adjust the 5 for faster or slower interpolation
 
-    // Combine translation and rotation in the car's transformation
-    this.car_transform = Mat4.translation(...this.car_position).times(
-      Mat4.rotation(this.current_tilt, 0, 1, 0))
-        .times(Mat4.translation(0, 0.6, 0))
-        .times(Mat4.rotation(Math.PI, 0, 1, 0))
-        .times(Mat4.scale(1.25, 1.25, 1.25));
-        //.times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
-        //.times(Mat4.rotation(Math.PI, 0, 1, 0))
-     // Rotation around the Y-axis for tilt
+      // Combine translation and rotation in the car's transformation
+      this.car_transform = Mat4.translation(...this.car_position)
+          .times(Mat4.rotation(this.current_tilt, 0, 1, 0))
+          .times(Mat4.translation(0, 0.6, 0))
+          .times(Mat4.rotation(Math.PI, 0, 1, 0))
+          .times(Mat4.scale(1.25, 1.25, 1.25));
+      // Rotation around the Y-axis for tilt
 
-    const road_left_bound = -10; // Left boundary of the road
-    const road_right_bound = 10; // Right boundary of the road
+      const road_left_bound = -6; // Left boundary of the road
+      const road_right_bound = 6; // Right boundary of the road
 
-    // Check if the car is within the bounds after updating its position
-    if (this.car_position[0] < road_left_bound) {
-      this.car_position[0] = road_left_bound; // Reset to left bound
-      this.car_velocity[0] = 0; // Stop the car's lateral movement
-    } else if (this.car_position[0] > road_right_bound) {
-      this.car_position[0] = road_right_bound; // Reset to right bound
-      this.car_velocity[0] = 0; // Stop the car's lateral movement
-    }
+      // Check if the car is within the bounds after updating its position
+      if (this.car_position[0] < road_left_bound) {
+          this.car_position[0] = road_left_bound; // Reset to left bound
+          this.car_velocity[0] = 0; // Stop the car's lateral movement
+      } else if (this.car_position[0] > road_right_bound) {
+          this.car_position[0] = road_right_bound; // Reset to right bound
+          // this.car_velocity[0] = 0; // Stop the car's lateral movement
+      }
 
-    // Deceleration logic (when no keys are pressed)
-    if (this.car_acceleration[0] == 0 && !this.car_velocity[0] == 0) {
-      const deceleration = this.deceleration_rate * dt;
-      this.car_velocity[0] =
-        this.car_velocity[0] > 0
-          ? Math.max(0, this.car_velocity[0] - deceleration)
-          : Math.min(0, this.car_velocity[0] + deceleration);
-    }
+      // Deceleration logic (when no keys are pressed)
+      if (this.car_acceleration[0] == 0 && !this.car_velocity[0] == 0) {
+          const deceleration = this.deceleration_rate * dt;
+          this.car_velocity[0] =
+              this.car_velocity[0] > 0
+                  ? Math.max(0, this.car_velocity[0] - deceleration)
+                  : Math.min(0, this.car_velocity[0] + deceleration);
+      }
   }
 
   display(context, program_state) {
@@ -423,15 +548,19 @@ export class CarGame extends Scene {
     // The parameters of the Light are: position, color, size
     program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
 
-      this.materials.road.shader.uniforms.stop_texture_update = 0;
-      this.materials.road.shader.uniforms.texture_offset = 0;
+      this.materials.road.shader.uniforms.stop_update = 0;
+      this.materials.road.shader.uniforms.offset = 0;
       this.materials.road.shader.uniforms.animation_time = 0;
 
     const t = program_state.animation_time / 1000;
+    let t2;
     const dt = program_state.animation_delta_time / 1000;
-    this.update_state(dt);
 
-    this.materials.road.shader.uniforms.texture_offset += this.acceleration_rate * t/450;
+    if(!this.collision_detected) {
+        this.update_state(dt);
+        this.materials.road.shader.uniforms.offset += this.acceleration_rate * t/450;
+    }
+    this.generate_traffic(context, program_state, t/5);
 
     const road_transform = this.road_transform.times(
       Mat4.translation(0, -0.5, 0)
@@ -444,7 +573,7 @@ export class CarGame extends Scene {
       this.materials.road
     );
 
-    this.shapes.car.draw(
+    this.cars[this.randomCarNum].car.draw(
       context,
       program_state,
       this.car_transform,
@@ -453,7 +582,9 @@ export class CarGame extends Scene {
 
     const original_tree_position_1 = -140;
     const original_tree_position_2 = -200;
-    const original_car2_position = -160
+    const original_car2_position = -160;
+
+    this.checkCollision();
 /*
 * this.tree_transform_1 = this.tree_transform_1.times(
       Mat4.translation(-18, -0.5, original_tree_position_1)
