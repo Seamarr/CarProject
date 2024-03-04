@@ -1,24 +1,8 @@
 import { tiny, defs } from "./objects.js";
-import { Shape_From_File } from './examples/obj-file-demo.js';
+import { Shapes_From_File, Custom_Shader } from "./object_loader.js";
 
-const {
-  Vector,
-  Vector3,
-  vec,
-  vec3,
-  vec4,
-  color,
-  hex_color,
-  Shader,
-  Matrix,
-  Mat4,
-  Light,
-  Shape,
-  Material,
-  Texture,
-  Scene,
-} = tiny;
-
+const { Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Texture, Scene, } = tiny;
+const {Textured_Phong} = defs
 export class CarGame extends Scene {
   constructor() {
     // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
@@ -26,35 +10,27 @@ export class CarGame extends Scene {
 
     // At the beginning of our program, load one of each of these shape definitions onto the GPU.
     this.shapes = {
-        torus: new defs.Torus(15, 15),
-        torus2: new defs.Torus(3, 15),
-        sphere: new defs.Subdivision_Sphere(4),
-        circle: new defs.Regular_2D_Polygon(1, 15),
-        box: new defs.Box(2, 1, 4),
-        road: new defs.Box(20, 0.1, 500),
-        car: new Shape_From_File("assets/10600_RC_ Car_SG_v2_L3.obj"),
-        tree: new defs.Box(5,10,3),
-        leaves: new defs.Box(5,5,5),
+      box: new defs.Box(2, 1, 4),
+      //road: new defs.Box(20, 0.1, 500),
+      road: new defs.Cube(),
+      tree: new defs.Box(5, 10, 3),
+      leaves: new defs.Box(5, 5, 5),
+      car: new Shapes_From_File("assets/Car.obj"),
+      car2: new Shapes_From_File("assets/Car2.obj"),
     };
 
     // *** Materials
     this.materials = {
-      test: new Material(new defs.Phong_Shader(), {
-        ambient: 0.4,
-        diffusivity: 0.6,
-        color: hex_color("#ffffff"),
-      }),
-      car: new Material(new defs.Textured_Phong(), {
-          color: color(.5, .5, .5, 1),
-          ambient: .3, diffusivity: .5, specularity: .5, texture: new Texture("assets/stars.png")
-      }),
-      road: new Material(new defs.Phong_Shader(), {
-        color: hex_color("#D3D3D3"),
-        ambient: 1,
-      }),
-      tree: new Material(new defs.Phong_Shader(), {
-          color: hex_color("#964B00"),
-          ambient: 1,
+        car: new Material(new Custom_Shader(), {
+            ambient: 1,
+        }),
+        road: new Material(new Textured_Phong(), {
+            ambient: .5,
+            texture: new Texture("assets/road_texture.png")
+        }),
+        tree: new Material(new defs.Phong_Shader(), {
+            color: hex_color("#462500"),
+            ambient: 1,
         }),
         leaves: new Material(new defs.Phong_Shader(), {
             color: hex_color("#00FF00"),
@@ -62,23 +38,28 @@ export class CarGame extends Scene {
         }),
     };
 
+//    this.initial_camera_location = Mat4.look_at(
+//      vec3(0, 5, 20),
+//      vec3(0, 0, 0),
+//      vec3(0, 1, 0)
+ //   );
     this.initial_camera_location = Mat4.look_at(
-      vec3(0, 5, 20),
-      vec3(0, 0, 0),
-      vec3(0, 1, 0)
+        vec3(0, 9, 20), // eye position
+        vec3(0, 0, -5), // at position
+        vec3(0, 1, 0) // up direction
     );
 
-    this.time_elapsed_1=0;
-    this.time_elapsed_2=0;
-
+    this.time_elapsed_1 = 0;
+    this.time_elapsed_2 = 0;
+    this.time_elapsed_3 = 0;
 
     this.car_transform = Mat4.identity();
-    this.road_transform = Mat4.identity();
-    this.tree_transform_1=Mat4.identity();
-    this.tree_transform_2=Mat4.identity();
+    this.car2_transform = Mat4.identity();
+    this.road_transform = Mat4.identity().times(Mat4.scale(10, 0.1, 250));
+    this.tree_transform_1 = Mat4.identity();
+    this.tree_transform_2 = Mat4.identity();
 
-
-      // Movement state
+    // Movement state
     this.car_position = vec3(0, 0, 0); // Use a vector to represent position
     this.car_velocity = vec3(0, 0, 0); // Velocity vector
     this.car_acceleration = vec3(0, 0, 0); // Acceleration vector
@@ -102,6 +83,9 @@ export class CarGame extends Scene {
       this.acceleration_rate = 0;
     }
 
+    this.collision_threshold = 2.5;
+    this.collision_detected = false;
+
     console.log(this.acceleration_rate);
 
     this.tilt_angle = 0;
@@ -118,63 +102,63 @@ export class CarGame extends Scene {
     this.key_triggered_button(
       "Move Left",
       ["ArrowLeft"],
-      () => {
-        this.car_acceleration[0] = -this.acceleration_rate;
-        this.target_tilt = Math.PI / 2; // Set to desired tilt angle for left turn
-        this.tilt_angle = -5;
-      },
+      () => { if (!this.collision_detected) {
+          this.car_acceleration[0] = -this.acceleration_rate;
+          this.target_tilt = Math.PI / 2; // Set to desired tilt angle for left turn
+          this.tilt_angle = -5;
+      }},
       undefined,
-      () => {
-        this.car_acceleration[0] = 0;
-        this.target_tilt = 0; // Reset to no tilt when key is released
-        this.tilt_angle = 0;
-      }
+      () => { if (!this.collision_detected) {
+          this.car_acceleration[0] = 0;
+          this.target_tilt = 0; // Reset to no tilt when key is released
+          this.tilt_angle = 0;
+      }}
     );
     this.key_triggered_button(
       "Move Right",
       ["ArrowRight"],
-      () => {
-        this.car_acceleration[0] = this.acceleration_rate;
-        this.target_tilt = -Math.PI / 2; // Set to desired tilt angle for right turn
-        this.tilt_angle = 5;
-      },
+      () => { if (!this.collision_detected) {
+          this.car_acceleration[0] = this.acceleration_rate;
+          this.target_tilt = -Math.PI / 2; // Set to desired tilt angle for right turn
+          this.tilt_angle = 5;
+      }},
       undefined,
-      () => {
-        this.car_acceleration[0] = 0;
-        this.target_tilt = 0; // Reset to no tilt when key is released
-        this.tilt_angle = 0;
-      }
+      () => { if (!this.collision_detected) {
+          this.car_acceleration[0] = 0;
+          this.target_tilt = 0; // Reset to no tilt when key is released
+          this.tilt_angle = 0;
+      }}
     );
     this.new_line();
     this.key_triggered_button(
       "Move Left",
       ["a"],
-      () => {
-        this.car_acceleration[0] = -this.acceleration_rate;
-        this.target_tilt = Math.PI / 2; // Set to desired tilt angle for left turn
-        this.tilt_angle = -5;
-      },
+      () => { if (!this.collision_detected) {
+          this.car_acceleration[0] = -this.acceleration_rate;
+          this.target_tilt = Math.PI / 2; // Set to desired tilt angle for left turn
+          this.tilt_angle = -5;
+      }},
       undefined,
-      () => {
-        this.car_acceleration[0] = 0;
-        this.target_tilt = 0; // Reset to no tilt when key is released
-        this.tilt_angle = 0;
-      }
+      () => { if (!this.collision_detected) {
+          this.car_acceleration[0] = 0;
+          this.target_tilt = 0; // Reset to no tilt when key is released
+          this.tilt_angle = 0;
+      }}
     );
     this.key_triggered_button(
       "Move Right",
       ["d"],
-      () => {
-        this.car_acceleration[0] = this.acceleration_rate;
-        this.target_tilt = -Math.PI / 2; // Set to desired tilt angle for right turn
-        this.tilt_angle = 5;
-      },
+      () => { if (!this.collision_detected) {
+          this.car_acceleration[0] = this.acceleration_rate;
+          this.target_tilt = -Math.PI / 2; // Set to desired tilt angle for right turn
+          this.tilt_angle = 5;
+      }},
       undefined,
-      () => {
-        this.car_acceleration[0] = 0;
-        this.target_tilt = 0; // Reset to no tilt when key is released
-        this.tilt_angle = 0;
-      }
+      () => { if (!this.collision_detected) {
+          this.car_acceleration[0] = 0;
+          this.target_tilt = 0; // Reset to no tilt when key is released
+          this.tilt_angle = 0;
+      }}
     );
     this.new_line();
     const mass_controls = this.control_panel.appendChild(
@@ -309,7 +293,10 @@ export class CarGame extends Scene {
       "-",
       ["u"],
       () => {
-        this.coefficient_of_friction /= 1.2;
+        this.coefficient_of_friction -= 0.05;
+        if (this.coefficient_of_friction < 0) {
+          this.coefficient_of_friction = 0;
+        }
         this.friction_force =
           this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
         this.total_acceleration_force =
@@ -337,7 +324,10 @@ export class CarGame extends Scene {
       "+",
       ["i"],
       () => {
-        this.coefficient_of_friction *= 1.2;
+        this.coefficient_of_friction += 0.05;
+        if (this.coefficient_of_friction > 1.0) {
+          this.coefficient_of_friction = 1.0;
+        }
         this.friction_force =
           this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
         this.total_acceleration_force =
@@ -383,14 +373,14 @@ export class CarGame extends Scene {
     this.current_tilt += (this.target_tilt - this.current_tilt) * dt * 5; // Adjust the 5 for faster or slower interpolation
 
     // Combine translation and rotation in the car's transformation
-    this.car_transform = Mat4.translation(...this.car_position)
-                             .times(Mat4.rotation(this.current_tilt, 0, 1, 0)
-                                 .times(Mat4.translation(0, 0.4, 0))
-                             .times(Mat4.rotation(Math.PI/2, 1, 0, 0))
-                             .times(Mat4.rotation(Math.PI, 0, 1, 0))
-                             .times(Mat4.scale(2, 2, 2))
-
-    ); // Rotation around the Y-axis for tilt
+    this.car_transform = Mat4.translation(...this.car_position).times(
+      Mat4.rotation(this.current_tilt, 0, 1, 0))
+        .times(Mat4.translation(0, 0.6, 0))
+        .times(Mat4.rotation(Math.PI, 0, 1, 0))
+        .times(Mat4.scale(1.25, 1.25, 1.25));
+        //.times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
+        //.times(Mat4.rotation(Math.PI, 0, 1, 0))
+     // Rotation around the Y-axis for tilt
 
     const road_left_bound = -10; // Left boundary of the road
     const road_right_bound = 10; // Right boundary of the road
@@ -433,9 +423,15 @@ export class CarGame extends Scene {
     // The parameters of the Light are: position, color, size
     program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
 
+      this.materials.road.shader.uniforms.stop_texture_update = 0;
+      this.materials.road.shader.uniforms.texture_offset = 0;
+      this.materials.road.shader.uniforms.animation_time = 0;
+
     const t = program_state.animation_time / 1000;
     const dt = program_state.animation_delta_time / 1000;
     this.update_state(dt);
+
+    this.materials.road.shader.uniforms.texture_offset += this.acceleration_rate * t/450;
 
     const road_transform = this.road_transform.times(
       Mat4.translation(0, -0.5, 0)
@@ -455,69 +451,91 @@ export class CarGame extends Scene {
       this.materials.car
     );
 
-
-   const original_tree_position_1 = -140;
-   const original_tree_position_2 = -200;
-
-
-      this.tree_transform_1 = this.road_transform.times(Mat4.translation(18, 0, original_tree_position_1));
-
-    if (5* (t-this.time_elapsed_1)  <= (Math.abs(original_tree_position_1)/this.acceleration_rate) + 2){
-       this.tree_transform_1=this.tree_transform_1.times(Mat4.translation(0,0,5 * this.acceleration_rate*(t-this.time_elapsed_1)));
-    }
-    else{
-        this.time_elapsed_1=t;
-    }
-    this.shapes.tree.draw(
-            context,
-            program_state,
-            this.tree_transform_1,
-            this.materials.tree
+    const original_tree_position_1 = -140;
+    const original_tree_position_2 = -200;
+    const original_car2_position = -160
+/*
+* this.tree_transform_1 = this.tree_transform_1.times(
+      Mat4.translation(-18, -0.5, original_tree_position_1)
     );
 
-      this.tree_transform_2=this.road_transform.times(Mat4.translation(-18,0,original_tree_position_2));
-
-      if (5* (t-this.time_elapsed_2)  <= (Math.abs(original_tree_position_2)/this.acceleration_rate) + 2){
-          this.tree_transform_2=this.tree_transform_2.times(Mat4.translation(0,0,5 * this.acceleration_rate*(t-this.time_elapsed_2)));
-      }
-      else{
-          this.time_elapsed_2=t;
-      }
-      this.shapes.tree.draw(
-          context,
-          program_state,
-          this.tree_transform_2,
-          this.materials.tree
+    if (
+      5 * (t - this.time_elapsed_1) <=
+      Math.abs(original_tree_position_1) / this.acceleration_rate + 2
+    ) {
+      this.tree_transform_1 = this.tree_transform_1.times(
+        Mat4.translation(
+          0,
+          0,
+          5 * this.acceleration_rate * (t - this.time_elapsed_1)
+        )
       );
+    } else {
+      this.time_elapsed_1 = t;
+    }
+    this.shapes.tree.draw(
+      context,
+      program_state,
+      this.tree_transform_1,
+      this.materials.tree
+    );
 
-      this.tree_transform_1 = this.tree_transform_1.times(Mat4.translation(-5, 5, 0));
-      this.tree_transform_2 = this.tree_transform_2.times(Mat4.translation(5, 5, 0));
+    this.tree_transform_2 = this.road_transform.times(
+      Mat4.translation(-18, 0, original_tree_position_2)
+    );
 
-      for (let i=0; i<4; i++){
-          this.shapes.leaves.draw(
-              context,
-              program_state,
-              this.tree_transform_1,
-              this.materials.leaves
-          );
-          this.shapes.leaves.draw(
-              context,
-              program_state,
-              this.tree_transform_2,
-              this.materials.leaves
-          );
-          this.tree_transform_1 = this.tree_transform_1.times(Mat4.translation(5,0, 0)) // Translate to origin
-              .times(Mat4.rotation(Math.PI / 2, 0, 1, 0)) // Rotate around origin
-              .times(Mat4.translation(-5, 0, 0)); // Translate back
+    if (
+      5 * (t - this.time_elapsed_2) <=
+      Math.abs(original_tree_position_2) / this.acceleration_rate + 2
+    ) {
+      this.tree_transform_2 = this.tree_transform_2.times(
+        Mat4.translation(
+          0,
+          0,
+          5 * this.acceleration_rate * (t - this.time_elapsed_2)
+        )
+      );
+    } else {
+      this.time_elapsed_2 = t;
+    }
+    this.shapes.tree.draw(
+      context,
+      program_state,
+      this.tree_transform_2,
+      this.materials.tree
+    );
 
-          this.tree_transform_2 = this.tree_transform_2.times(Mat4.translation(-5, -5, 0)) // Translate to origin
-              .times(Mat4.rotation(Math.PI / 2, 0, 1, 0)) // Rotate around origin
-              .times(Mat4.translation(5, 5, 0)); // Translate back
+    this.tree_transform_1 = this.tree_transform_1.times(
+      Mat4.translation(-5, 5, 0)
+    );
+    this.tree_transform_2 = this.tree_transform_2.times(
+      Mat4.translation(5, 5, 0)
+    );
 
-      }
+    for (let i = 0; i < 4; i++) {
+      this.shapes.leaves.draw(
+        context,
+        program_state,
+        this.tree_transform_1,
+        this.materials.leaves
+      );
+      this.shapes.leaves.draw(
+        context,
+        program_state,
+        this.tree_transform_2,
+        this.materials.leaves
+      );
+      this.tree_transform_1 = this.tree_transform_1
+        .times(Mat4.translation(5, 0, 0)) // Translate to origin
+        .times(Mat4.rotation(Math.PI / 2, 0, 1, 0)) // Rotate around origin
+        .times(Mat4.translation(-5, 0, 0)); // Translate back
 
-
-
-
+      this.tree_transform_2 = this.tree_transform_2
+        .times(Mat4.translation(-5, -5, 0)) // Translate to origin
+        .times(Mat4.rotation(Math.PI / 2, 0, 1, 0)) // Rotate around origin
+        .times(Mat4.translation(5, 5, 0)); // Translate back
+    }
+*
+* */
   }
 }
