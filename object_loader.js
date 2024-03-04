@@ -680,7 +680,7 @@ export class Shapes_From_File {
 
     const defaultMaterial = {
       shader: new Custom_Shader(1),
-      color: color(1, 1, 1, 1),
+      color: color(0, 0, 0, 1),
       ambient: 0.1,
       diffusivity: 0.1,
       specularity: 1,
@@ -713,7 +713,7 @@ export class Shapes_From_File {
         if (data.position.length === data.color.length) {
           // it's 3. The our helper library assumes 4 so we need
           // to tell it there are only 3.
-          part_color = color(color[0], color[1], color[2], 1);
+          data.color = color(color[0], color[1], color[2], 1);
         }
       }
 
