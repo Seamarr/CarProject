@@ -52,8 +52,7 @@ export class CarGame extends Scene {
 
     this.randomCarNum = Math.round(Math.random() * 8);
     this.randomCarNum2 = Math.round(Math.random() * 8);
-    this.randomCarNum3 = Math.round(Math.random() * 8);
-    this.randomCarNum4 = Math.round(Math.random() * 8);
+    this.resetTime = false;
 
     // *** Materials
     this.materials = {
@@ -583,8 +582,11 @@ export class CarGame extends Scene {
     this.current_tilt = 0;
     this.target_tilt = 0;
 
-    this.materials.road.shader.uniforms.stop_update = 0;
-    //this.materials.road.shader.uniforms.animation_time = 0;
+    this.materials.road.shader.uniforms.stop_texture_update = 0;
+    this.materials.road.shader.uniforms.texture_offset = 0;
+    this.materials.road.shader.uniforms.animation_time = 0;
+
+    this.resetTime = true;
   }
 
   update_state(dt) {
@@ -665,16 +667,21 @@ export class CarGame extends Scene {
     this.materials.road.shader.uniforms.offset = 0;
     this.materials.road.shader.uniforms.animation_time = 0;
 
+    if (this.resetTime) {
+      program_state.animation_time = 0;
+      program_state.animation_delta_time = 0;
+      this.resetTime = false
+    }
+
     const t = program_state.animation_time / 1000;
-    let t2;
     const dt = program_state.animation_delta_time / 1000;
 
     if (!this.collision_detected) {
       this.update_state(dt);
       this.materials.road.shader.uniforms.offset +=
-        ((this.game_speed / 2) * t) / 450;
+        ((this.game_speed / 2) * t - dt) / 450;
     }
-    this.generate_traffic(context, program_state, t / 5);
+    this.generate_traffic(context, program_state, (t - dt) / 5);
 
     const road_transform = this.road_transform.times(
       Mat4.translation(0, -0.5, 0)
