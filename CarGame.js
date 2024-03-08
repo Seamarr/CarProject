@@ -31,23 +31,23 @@ export class CarGame extends Scene {
       road: new defs.Cube(),
       tree: new defs.Box(5, 10, 3),
       leaves: new defs.Box(5, 5, 5),
-      car: new Shapes_From_File("assets/Car.obj"),
-      car2: new Shapes_From_File("assets/Car2.obj"),
-      car3: new Shapes_From_File("assets/Car3.obj"),
-      car4: new Shapes_From_File("assets/Car4.obj"),
-      car5: new Shapes_From_File("assets/Car5.obj"),
-      car6: new Shapes_From_File("assets/Car6.obj"),
-      car7: new Shapes_From_File("assets/Car7.obj"),
+      //car: new Shapes_From_File("assets/Car.obj"),
+      //car2: new Shapes_From_File("assets/Car2.obj"),
+      //car3: new Shapes_From_File("assets/Car3.obj"),
+      //car4: new Shapes_From_File("assets/Car4.obj"),
+      //car5: new Shapes_From_File("assets/Car5.obj"),
+      //car6: new Shapes_From_File("assets/Car6.obj"),
+      //car7: new Shapes_From_File("assets/Car7.obj"),
     };
 
     this.cars = [
       { car: new Shapes_From_File("assets/Car.obj") },
-      { car: new Shapes_From_File("assets/Car2.obj") },
-      { car: new Shapes_From_File("assets/Car3.obj") },
-      { car: new Shapes_From_File("assets/Car4.obj") },
-      { car: new Shapes_From_File("assets/Car5.obj") },
-      { car: new Shapes_From_File("assets/Car6.obj") },
-      { car: new Shapes_From_File("assets/Car7.obj") },
+      { car2: new Shapes_From_File("assets/Car2.obj") },
+      { car3: new Shapes_From_File("assets/Car3.obj") },
+      { car4: new Shapes_From_File("assets/Car4.obj") },
+      { car5: new Shapes_From_File("assets/Car5.obj") },
+      { car6: new Shapes_From_File("assets/Car6.obj") },
+      { car7: new Shapes_From_File("assets/Car7.obj") },
     ];
 
     this.randomCarNum = Math.round(Math.random() * 8);
@@ -56,10 +56,10 @@ export class CarGame extends Scene {
 
     // *** Materials
     this.materials = {
-      car: new Material(new Custom_Shader(), {
+      car: new Material(new Textured_Phong(1), {
         ambient: 1,
       }),
-      road: new Material(new Textured_Phong(), {
+      road: new Material(new Textured_Phong(1), {
         ambient: 0.5,
         texture: new Texture("assets/road_texture.png"),
       }),
@@ -500,19 +500,19 @@ export class CarGame extends Scene {
       }
     }
 
-    this.cars[this.randomCarNum2].car.draw(
+    this.cars[0].car.draw(
       context,
       program_state,
       this.traffic_transform[0].car_transform,
       this.materials.car
     );
-    this.cars[this.randomCarNum2].car.draw(
+    this.cars[1].car2.draw(
       context,
       program_state,
       this.traffic_transform[1].car_transform,
       this.materials.car
     );
-    this.cars[this.randomCarNum2].car.draw(
+    this.cars[2].car3.draw(
       context,
       program_state,
       this.traffic_transform[2].car_transform,
@@ -694,7 +694,7 @@ export class CarGame extends Scene {
       this.materials.road
     );
 
-    this.cars[this.randomCarNum].car.draw(
+    this.cars[4].car5.draw(
       context,
       program_state,
       this.car_transform,
