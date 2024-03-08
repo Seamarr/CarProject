@@ -19,7 +19,7 @@ export class CarGame extends Scene {
         leaves: new defs.Box(5, 5, 5),
         car: new Shapes_From_File("assets/Car.obj"),
         car2: new Shapes_From_File("assets/Car2.obj"),
-        cone: new Shapes_From_File("assets/ConeFolder/objPylon.obj"),
+        // cone: new Shapes_From_File("assets/ConeFolder/objPylon.obj"),
         sky: new defs.Cube(),
         car3: new Shapes_From_File("assets/Car3.obj"),
         car4: new Shapes_From_File("assets/Car4.obj"),
@@ -71,14 +71,14 @@ export class CarGame extends Scene {
           ambient: .5,
           texture: new Texture("assets/grass.png")
         }),
-        tree: new Material(new defs.Phong_Shader(), {
-            color: hex_color("#462500"),
-            ambient: 1,
-        }),
-        leaves: new Material(new defs.Phong_Shader(), {
-            color: hex_color("#00FF00"),
-            ambient: 1,
-        }),
+        // tree: new Material(new defs.Phong_Shader(), {
+        //     color: hex_color("#462500"),
+        //     ambient: 1,
+        // }),
+        // leaves: new Material(new defs.Phong_Shader(), {
+        //     color: hex_color("#00FF00"),
+        //     ambient: 1,
+        // }),
         sky: new Material(new Textured_Phong(), {
           // color: hex_color("#87CEEB"),
           // ambient: .5,
@@ -86,10 +86,6 @@ export class CarGame extends Scene {
           // diffusivity: 1
           ambient: 1,
           texture: new Texture("assets/cloudy_sky.jpeg")
-        }),
-        cone: new Material(new Textured_Phong(), {
-          ambient: 1
-          
         }),
         rainbow: new Material(new Textured_Phong(), {
           ambient: .5,
@@ -787,10 +783,10 @@ export class CarGame extends Scene {
     if(!this.collision_detected) {
         this.update_state(dt);
         this.materials.road.shader.uniforms.offset += this.acceleration_rate * t/450;
-        this.materials.grass.shader.uniforms.offset += this.acceleration_rate * t/10;
+        this.materials.grass.shader.uniforms.offset += this.acceleration_rate * t/15;
         this.materials.rainbow.shader.uniforms.offset += this.acceleration_rate * t/90;
-        this.materials.stars.shader.uniforms.offset += this.acceleration_rate * t/450;
-        this.materials.sky.shader.uniforms.offset += this.acceleration_rate * t/750;
+        this.materials.stars.shader.uniforms.offset += this.acceleration_rate * t/750;
+        this.materials.sky.shader.uniforms.offset += this.acceleration_rate * t/900;
     }
     this.generate_traffic(context, program_state, t/5);
 
@@ -799,16 +795,14 @@ export class CarGame extends Scene {
         );
 
     const grass_left_transform = this.grass_left_transform.times(
-      Mat4.translation(-1.1,-.5,0)
-    )
+      Mat4.translation(-1.1,-0.5,0)
+    );
 
-    const grass_right_transform = this.grass_right_transform.times(
-      Mat4.translation(1.1,-.5,0)
-    )
+    const grass_right_transform = this.grass_right_transform.times(Mat4.translation(1.1,-0.5,0));
 
     const sky_transform = this.sky_transform.times(Mat4.translation(0,0,-500))
 
-    const cone_transform = this.cone_transform.times(Mat4.translation(0,0,-100))
+    // const cone_transform = this.cone_transform.times(Mat4.translation(0,0,-100))
 
 
     if(this.grass_flag) {
@@ -858,12 +852,12 @@ export class CarGame extends Scene {
     }
 
 
-        this.cars[this.randomCarNum].car.draw(
-            context,
-            program_state,
-            this.car_transform,
-            this.materials.car
-        );
+    this.cars[this.randomCarNum].car.draw(
+        context,
+        program_state,
+        this.car_transform,
+        this.materials.car
+    );
 
 
 
