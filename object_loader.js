@@ -36,10 +36,10 @@ export class Custom_Shader extends Shader {
   shared_glsl_code() {
     // ********* SHARED CODE, INCLUDED IN BOTH SHADERS *********
     return (
-      ` precision mediump float;
+        ` precision mediump float;
             const int N_LIGHTS = ` +
-      this.num_lights +
-      `;
+        this.num_lights +
+        `;
             uniform float ambient, diffusivity, specularity, smoothness;
             uniform vec4 light_positions_or_vectors[N_LIGHTS], light_colors[N_LIGHTS];
             uniform float light_attenuation_factors[N_LIGHTS];
@@ -86,8 +86,8 @@ export class Custom_Shader extends Shader {
   vertex_glsl_code() {
     // ********* VERTEX SHADER *********
     return (
-      this.shared_glsl_code() +
-      `
+        this.shared_glsl_code() +
+        `
             varying vec2 f_tex_coord;
             attribute vec3 position, normal;                            
             // Position is expressed in object coordinates.
@@ -113,8 +113,8 @@ export class Custom_Shader extends Shader {
     // A fragment is a pixel that's overlapped by the current triangle.
     // Fragments affect the final image or get discarded due to depth.
     return (
-      this.shared_glsl_code() +
-      `
+        this.shared_glsl_code() +
+        `
             varying vec2 f_tex_coord;
             uniform sampler2D texture;
     
@@ -143,14 +143,14 @@ export class Custom_Shader extends Shader {
   send_gpu_state(gl, gpu, gpu_state, model_transform) {
     // send_gpu_state():  Send the state of our whole drawing context to the GPU.
     const O = vec4(0, 0, 0, 1),
-      camera_center = gpu_state.camera_transform.times(O).to3();
+        camera_center = gpu_state.camera_transform.times(O).to3();
     gl.uniform3fv(gpu.camera_center, camera_center);
     // Use the squared scale trick from "Eric's blog" instead of inverse transpose matrix:
     const squared_scale = model_transform
-      .reduce((acc, r) => {
-        return acc.plus(vec4(...r).times_pairwise(r));
-      }, vec4(0, 0, 0, 0))
-      .to3();
+        .reduce((acc, r) => {
+          return acc.plus(vec4(...r).times_pairwise(r));
+        }, vec4(0, 0, 0, 0))
+        .to3();
     gl.uniform3fv(gpu.squared_scale, squared_scale);
     // Send the current matrices to the shader.  Go ahead and pre-compute
     // the products we'll need of the of the three special matrices and just
@@ -158,37 +158,37 @@ export class Custom_Shader extends Shader {
     // call, and thus across each instance of the vertex shader.
     // Transpose them since the GPU expects matrices as column-major arrays.
     const PCM = gpu_state.projection_transform
-      .times(gpu_state.camera_inverse)
-      .times(model_transform);
+        .times(gpu_state.camera_inverse)
+        .times(model_transform);
     gl.uniformMatrix4fv(
-      gpu.model_transform,
-      false,
-      Matrix.flatten_2D_to_1D(model_transform.transposed())
+        gpu.model_transform,
+        false,
+        Matrix.flatten_2D_to_1D(model_transform.transposed())
     );
     gl.uniformMatrix4fv(
-      gpu.projection_camera_model_transform,
-      false,
-      Matrix.flatten_2D_to_1D(PCM.transposed())
+        gpu.projection_camera_model_transform,
+        false,
+        Matrix.flatten_2D_to_1D(PCM.transposed())
     );
 
     // Omitting lights will show only the material color, scaled by the ambient term:
     if (!gpu_state.lights.length) return;
 
     const light_positions_flattened = [],
-      light_colors_flattened = [];
+        light_colors_flattened = [];
     for (let i = 0; i < 4 * gpu_state.lights.length; i++) {
       light_positions_flattened.push(
-        gpu_state.lights[Math.floor(i / 4)].position[i % 4]
+          gpu_state.lights[Math.floor(i / 4)].position[i % 4]
       );
       light_colors_flattened.push(
-        gpu_state.lights[Math.floor(i / 4)].color[i % 4]
+          gpu_state.lights[Math.floor(i / 4)].color[i % 4]
       );
     }
     gl.uniform4fv(gpu.light_positions_or_vectors, light_positions_flattened);
     gl.uniform4fv(gpu.light_colors, light_colors_flattened);
     gl.uniform1fv(
-      gpu.light_attenuation_factors,
-      gpu_state.lights.map((l) => l.attenuation)
+        gpu.light_attenuation_factors,
+        gpu_state.lights.map((l) => l.attenuation)
     );
   }
 
@@ -233,13 +233,13 @@ export class Mesh extends Shape {
 
     for (var j = 0; j < position.length / 3; j++) {
       this.arrays.position.push(
-        vec3(position[3 * j], position[3 * j + 1], position[3 * j + 2])
+          vec3(position[3 * j], position[3 * j + 1], position[3 * j + 2])
       );
       this.arrays.normal.push(
-        vec3(normal[3 * j], normal[3 * j + 1], normal[3 * j + 2])
+          vec3(normal[3 * j], normal[3 * j + 1], normal[3 * j + 2])
       );
       this.arrays.texture_coord.push(
-        vec(texture_coord[2 * j], texture_coord[2 * j + 1])
+          vec(texture_coord[2 * j], texture_coord[2 * j + 1])
       );
     }
 
@@ -397,7 +397,7 @@ function parseOBJ(text) {
   // remove any arrays that have no entries.
   for (const geometry of geometries) {
     geometry.data = Object.fromEntries(
-      Object.entries(geometry.data).filter(([, array]) => array.length > 0)
+        Object.entries(geometry.data).filter(([, array]) => array.length > 0)
     );
   }
 
@@ -489,15 +489,15 @@ function create1PixelTexture(gl, pixel) {
   const texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.texImage2D(
-    gl.TEXTURE_2D,
-    0,
-    gl.RGBA,
-    1,
-    1,
-    0,
-    gl.RGBA,
-    gl.UNSIGNED_BYTE,
-    new Uint8Array(pixel)
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      1,
+      1,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      new Uint8Array(pixel)
   );
   return texture;
 }
@@ -582,8 +582,8 @@ function scaleVector(v, s) {
 
 function generateTangents(position, texcoord, indices) {
   const getNextIndex = indices
-    ? makeIndexIterator(indices)
-    : makeUnindexedIterator(position);
+      ? makeIndexIterator(indices)
+      : makeUnindexedIterator(position);
   const numFaceVerts = getNextIndex.numElements;
   const numFaces = numFaceVerts / 3;
 
@@ -609,16 +609,16 @@ function generateTangents(position, texcoord, indices) {
 
     const f = 1.0 / (duv12[0] * duv13[1] - duv13[0] * duv12[1]);
     const tangent = Number.isFinite(f)
-      ? normalize(
-          scaleVector(
-            subtractVectors(
-              scaleVector(dp12, duv13[1]),
-              scaleVector(dp13, duv12[1])
-            ),
-            f
-          )
+        ? normalize(
+            scaleVector(
+                subtractVectors(
+                    scaleVector(dp12, duv13[1]),
+                    scaleVector(dp13, duv12[1])
+                ),
+                f
+            )
         )
-      : [1, 0, 0];
+        : [1, 0, 0];
 
     tangents.push(...tangent, ...tangent, ...tangent);
   }
@@ -644,11 +644,11 @@ export class Shapes_From_File {
     console.log(obj);
     const baseHref = new URL(filename, window.location.href);
     const matTexts = await Promise.all(
-      obj.materialLibs.map(async (filename) => {
-        const matHref = new URL(filename, baseHref).href;
-        const response = await fetch(matHref);
-        return await response.text();
-      })
+        obj.materialLibs.map(async (filename) => {
+          const matHref = new URL(filename, baseHref).href;
+          const response = await fetch(matHref);
+          return await response.text();
+        })
     );
     const materials = parseMTL(matTexts.join("\n"));
 
@@ -661,15 +661,15 @@ export class Shapes_From_File {
     // load texture for materials
     for (const material of Object.values(materials)) {
       Object.entries(material)
-        .filter(([key]) => key.endsWith("Map"))
-        .forEach(([key, filename]) => {
-          let texture = textures[filename];
-          if (!texture) {
-            const textureHref = new URL(filename, baseHref).href;
-            texture = new Texture(textureHref);
-          }
-          material["texture"] = texture;
-        });
+          .filter(([key]) => key.endsWith("Map"))
+          .forEach(([key, filename]) => {
+            let texture = textures[filename];
+            if (!texture) {
+              const textureHref = new URL(filename, baseHref).href;
+              texture = new Texture(textureHref);
+            }
+            material["texture"] = texture;
+          });
     }
 
     // hack the materials so we can see the specular map
@@ -744,24 +744,24 @@ export class Shapes_From_File {
         material: new Material(shader, {
           ...defaults,
           color:
-            materials[material] && "diffuse" in materials[material]
-              ? color(
-                  materials[material]["diffuse"][0],
-                  materials[material]["diffuse"][1],
-                  materials[material]["diffuse"][2],
-                  1
-                )
-              : part_color,
+              materials[material] && "diffuse" in materials[material]
+                  ? color(
+                      materials[material]["diffuse"][0],
+                      materials[material]["diffuse"][1],
+                      materials[material]["diffuse"][2],
+                      1
+                  )
+                  : part_color,
           texture:
-            materials[material] && "texture" in materials[material]
-              ? materials[material]["texture"]
-              : undefined,
+              materials[material] && "texture" in materials[material]
+                  ? materials[material]["texture"]
+                  : undefined,
         }),
         shape: new Mesh(
-          data.position,
-          data.normal,
-          data.texcoord,
-          data.indices
+            data.position,
+            data.normal,
+            data.texcoord,
+            data.indices
         ),
       };
     });
@@ -772,7 +772,7 @@ export class Shapes_From_File {
     // attempts to draw the shape before it loads:
     if (this.ready)
       this.parts.forEach((part) =>
-        part.shape.draw(context, program_state, model_transform, part.material)
+          part.shape.draw(context, program_state, model_transform, part.material)
       );
   }
 }
