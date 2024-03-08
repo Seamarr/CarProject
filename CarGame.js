@@ -176,7 +176,7 @@ export class CarGame extends Scene {
       this.acceleration_rate = 0;
     }
 
-    this.collision_threshold = 2.5;
+    this.collision_threshold = 5;
     this.collision_detected = false;
 
     console.log(this.acceleration_rate);
@@ -685,7 +685,7 @@ export class CarGame extends Scene {
       this.car_velocity[0] = 0; // Stop the car's lateral movement
     } else if (this.car_position[0] > road_right_bound) {
       this.car_position[0] = road_right_bound; // Reset to right bound
-      // this.car_velocity[0] = 0; // Stop the car's lateral movement
+      this.car_velocity[0] = 0; // Stop the car's lateral movement
     }
 
     // Deceleration logic (when no keys are pressed)
