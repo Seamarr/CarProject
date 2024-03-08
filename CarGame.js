@@ -17,15 +17,15 @@ export class CarGame extends Scene {
         grass: new defs.Cube(),
         tree: new defs.Box(5, 10, 3),
         leaves: new defs.Box(5, 5, 5),
-        car: new Shapes_From_File("assets/Car.obj"),
-        car2: new Shapes_From_File("assets/Car2.obj"),
+        // car: new Shapes_From_File("assets/Car.obj"),
+        // car2: new Shapes_From_File("assets/Car2.obj"),
         // cone: new Shapes_From_File("assets/ConeFolder/objPylon.obj"),
         sky: new defs.Cube(),
-        car3: new Shapes_From_File("assets/Car3.obj"),
-        car4: new Shapes_From_File("assets/Car4.obj"),
-        car5: new Shapes_From_File("assets/Car5.obj"),
-        car6: new Shapes_From_File("assets/Car6.obj"),
-        car7: new Shapes_From_File("assets/Car7.obj"),
+        // car3: new Shapes_From_File("assets/Car3.obj"),
+        // car4: new Shapes_From_File("assets/Car4.obj"),
+        // car5: new Shapes_From_File("assets/Car5.obj"),
+        // car6: new Shapes_From_File("assets/Car6.obj"),
+        // car7: new Shapes_From_File("assets/Car7.obj"),
     };
 
     this.shapes.grass.arrays.texture_coord.forEach(element => {
@@ -56,6 +56,7 @@ export class CarGame extends Scene {
         this.randomCarNum2 = Math.round(Math.random() * 8);
         this.randomCarNum3 = Math.round(Math.random() * 8);
         this.randomCarNum4 = Math.round(Math.random() * 8);
+        this.resetTime = false;
 
     // *** Materials
     this.materials = {
@@ -137,7 +138,11 @@ export class CarGame extends Scene {
         this.car_position = vec3(0, 0, 0); // Use a vector to represent position
         this.car_velocity = vec3(0, 0, 0); // Velocity vector
         this.car_acceleration = vec3(0, 0, 0); // Acceleration vector
+        
 
+        this.game_speed = 10;
+        this.speed_increase_rate = 1;
+    
         // Physics Constants
         this.max_speed = 10;
 
@@ -440,38 +445,82 @@ export class CarGame extends Scene {
     );
   }
 
+
   generate_traffic(context, program_state, t) {
       if(!this.collision_detected) {
-          const trafficZ = -200;
-          //this.traffic_transform[i].car_transform = Mat4.translation(0, 0.6, -50).times(Mat4.scale(1.25, 1.25, 1.25)); middle lane
-          //this.traffic_transform[i].car_transform = Mat4.translation(-5, 0.6, -50).times(Mat4.scale(1.25, 1.25, 1.25)); left lane
-          //this.traffic_transform[i].car_transform = Mat4.translation(5, 0.6, -50).times(Mat4.scale(1.25, 1.25, 1.25)); right lane
+          const trafficZ = [-175 , -200, -150];
+
+
           for(let i = 0; i < this.traffic_transform.length; i++) {
-              this.traffic_transform[i].car_transform = Mat4.translation(5, 0.6, trafficZ).times(Mat4.scale(1.25, 1.25, 1.25));
+              this.traffic_transform[i].car_transform = Mat4.translation(5 - 5*i, 0.6, trafficZ[i]).times(Mat4.scale(1.25, 1.25, 1.25));
           }
 
           if (
               5 * (t - this.time_elapsed_1) <=
-              Math.abs(trafficZ) / this.acceleration_rate + 2
+              Math.abs(trafficZ[0]) / this.game_speed
+          ) {
+              this.traffic_transform[0].car_transform = this.traffic_transform[0].car_transform.times(
+                  Mat4.translation(
+                      0,
+                      0,
+                      5 * this.game_speed * 1.25 * (t - this.time_elapsed_1)
+                  )
+              );
+          } else {
+              this.time_elapsed_1 = t;
+          }
+
+          if (
+              5 * (t - this.time_elapsed_2) <=
+              Math.abs(trafficZ[1]) / (this.game_speed * 1.45)
           ) {
               this.traffic_transform[1].car_transform = this.traffic_transform[1].car_transform.times(
                   Mat4.translation(
                       0,
                       0,
-                      5 * this.acceleration_rate * (t - this.time_elapsed_1)
+                      5 * this.game_speed * 1.25 * (t - this.time_elapsed_2)
                   )
               );
           } else {
-              this.time_elapsed_1 = t;
+              this.time_elapsed_2 = t;
+          }
+
+          if (
+              5 * (t - this.time_elapsed_3) <=
+              Math.abs(trafficZ[2]) / this.game_speed + Math.random()*4
+          ) {
+              this.traffic_transform[2].car_transform = this.traffic_transform[2].car_transform.times(
+                  Mat4.translation(
+                      0,
+                      0,
+                      5 * this.game_speed * 1.25 * (t - this.time_elapsed_3)
+                  )
+              );
+          } else {
+              this.time_elapsed_3 = t;
           }
       }
 
       this.cars[this.randomCarNum2].car.draw(
           context,
           program_state,
+          this.traffic_transform[0].car_transform,
+          this.materials.car
+      );
+      this.cars[this.randomCarNum2].car.draw(
+          context,
+          program_state,
           this.traffic_transform[1].car_transform,
           this.materials.car
       );
+      this.cars[this.randomCarNum2].car.draw(
+          context,
+          program_state,
+          this.traffic_transform[2].car_transform,
+          this.materials.car
+      );
+
+
   }
 
   checkCollision() {
@@ -490,148 +539,6 @@ export class CarGame extends Scene {
               break;
           }
       }
-  }
-
-  restart() {
-      this.time_elapsed_1 = 0;
-      this.time_elapsed_2 = 0;
-      this.time_elapsed_3 = 0;
-
-      this.car_transform = Mat4.identity();
-      this.traffic_transform = [
-          this.car_transform = Mat4.identity(),
-          this.car_transform = Mat4.identity(),
-          this.car_transform = Mat4.identity(),
-      ];
-      // Movement state
-      this.car_position = vec3(0, 0, 0); // Use a vector to represent position
-      this.car_velocity = vec3(0, 0, 0); // Velocity vector
-      this.car_acceleration = vec3(0, 0, 0); // Acceleration vector
-
-      // Physics Constants
-      this.max_speed = 10;
-
-      this.car_mass = 9;
-      this.coefficient_of_friction = 0.2;
-      this.applied_force = 50;
-      this.braking_force = 1;
-      this.friction_force = this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
-
-      this.total_acceleration_force = this.applied_force - this.friction_force;
-      this.total_deceleration_force = this.braking_force + this.friction_force;
-
-      this.acceleration_rate = this.total_acceleration_force / this.car_mass;
-      this.deceleration_rate = this.total_deceleration_force / this.car_mass;
-
-      if (this.acceleration_rate < 0) {
-          this.acceleration_rate = 0;
-      }
-
-      this.collision_detected = false;
-
-      this.tilt_angle = 0;
-      this.current_tilt = 0;
-      this.target_tilt = 0;
-
-      this.materials.road.shader.uniforms.stop_update = 0;
-      //this.materials.road.shader.uniforms.animation_time = 0;
-    }
-
-    generate_traffic(context, program_state, t) {
-
-
-        if(!this.collision_detected) {
-            const trafficZ = [-175 , -200, -150];
-
-
-            for(let i = 0; i < this.traffic_transform.length; i++) {
-                this.traffic_transform[i].car_transform = Mat4.translation(5 - 5*i, 0.6, trafficZ[i]).times(Mat4.scale(1.25, 1.25, 1.25));
-            }
-
-            if (
-                5 * (t - this.time_elapsed_1) <=
-                Math.abs(trafficZ[0]) / this.acceleration_rate
-            ) {
-                this.traffic_transform[0].car_transform = this.traffic_transform[0].car_transform.times(
-                    Mat4.translation(
-                        0,
-                        0,
-                        5 * this.acceleration_rate * (t - this.time_elapsed_1)
-                    )
-                );
-            } else {
-                this.time_elapsed_1 = t;
-            }
-
-            if (
-                5 * (t - this.time_elapsed_2) <=
-                Math.abs(trafficZ[1]) / this.acceleration_rate + Math.random()*4
-            ) {
-                this.traffic_transform[1].car_transform = this.traffic_transform[1].car_transform.times(
-                    Mat4.translation(
-                        0,
-                        0,
-                        5 * this.acceleration_rate * (t - this.time_elapsed_2)
-                    )
-                );
-            } else {
-                this.time_elapsed_2 = t;
-            }
-
-            if (
-                5 * (t - this.time_elapsed_3) <=
-                Math.abs(trafficZ[2]) / this.acceleration_rate + Math.random()*4
-            ) {
-                this.traffic_transform[2].car_transform = this.traffic_transform[2].car_transform.times(
-                    Mat4.translation(
-                        0,
-                        0,
-                        5 * this.acceleration_rate * (t - this.time_elapsed_3)
-                    )
-                );
-            } else {
-                this.time_elapsed_3 = t;
-            }
-        }
-
-        this.cars[this.randomCarNum2].car.draw(
-            context,
-            program_state,
-            this.traffic_transform[0].car_transform,
-            this.materials.car
-        );
-        this.cars[this.randomCarNum2].car.draw(
-            context,
-            program_state,
-            this.traffic_transform[1].car_transform,
-            this.materials.car
-        );
-        this.cars[this.randomCarNum2].car.draw(
-            context,
-            program_state,
-            this.traffic_transform[2].car_transform,
-            this.materials.car
-        );
-
-
-    }
-
-    checkCollision() {
-        const car_pos = this.car_transform.times(vec4(0, 0, 0, 1)); //get a snapshot of the car position
-        for (let i = 0; i < this.traffic_transform.length; i++) {
-            const traffic_pos = this.traffic_transform[i].car_transform.times(vec4(0, 0, 0, 1));
-            const distance = Math.sqrt(
-                Math.pow(car_pos[0] - traffic_pos[0], 2) +
-                Math.pow(car_pos[1] - traffic_pos[1], 2) +
-                Math.pow(car_pos[2] - traffic_pos[2], 2)
-            );
-            if (distance < this.collision_threshold) {
-                this.collision_detected = true;
-                this.materials.road.shader.uniforms.stop_texture_update = 1; // Stop texture update
-                this.materials.road.shader.uniforms.offset = 0;
-                break;
-            }
-        }
     }
 
     restart() {
@@ -675,11 +582,14 @@ export class CarGame extends Scene {
         this.current_tilt = 0;
         this.target_tilt = 0;
 
-        this.materials.road.shader.uniforms.stop_update = 0;
-        //this.materials.road.shader.uniforms.animation_time = 0;
+        this.materials.road.shader.uniforms.stop_texture_update = 0;
+        this.materials.road.shader.uniforms.texture_offset = 0;
+        this.materials.road.shader.uniforms.animation_time = 0;
     }
 
     update_state(dt) {
+
+      this.game_speed += dt * this.speed_increase_rate;
         // Update velocity based on acceleration
         this.car_velocity = this.car_velocity.plus(this.car_acceleration.times(dt));
 
@@ -776,19 +686,24 @@ export class CarGame extends Scene {
       this.materials.sky.shader.uniforms.offset = 0;
       this.materials.sky.shader.uniforms.animation_time = 0;
 
+      if (this.resetTime) {
+        program_state.animation_time = 0;
+        program_state.animation_delta_time = 0;
+        this.resetTime = false
+      }
+
     const t = program_state.animation_time / 1000;
-    let t2;
     const dt = program_state.animation_delta_time / 1000;
 
     if(!this.collision_detected) {
         this.update_state(dt);
-        this.materials.road.shader.uniforms.offset += this.acceleration_rate * t/450;
-        this.materials.grass.shader.uniforms.offset += this.acceleration_rate * t/15;
-        this.materials.rainbow.shader.uniforms.offset += this.acceleration_rate * t/90;
-        this.materials.stars.shader.uniforms.offset += this.acceleration_rate * t/750;
-        this.materials.sky.shader.uniforms.offset += this.acceleration_rate * t/900;
+        this.materials.road.shader.uniforms.offset +=  ((this.game_speed / 2) * t - dt) / 450;
+        this.materials.grass.shader.uniforms.offset += ((this.game_speed / 2) * t - dt) / 15;
+        this.materials.rainbow.shader.uniforms.offset += ((this.game_speed / 2) * t - dt) / 90;
+        this.materials.stars.shader.uniforms.offset += ((this.game_speed / 2) * t - dt) / 750;
+        this.materials.sky.shader.uniforms.offset += ((this.game_speed / 2) * t - dt) / 900;
     }
-    this.generate_traffic(context, program_state, t/5);
+    this.generate_traffic(context, program_state, (t-dt)/5);
 
         const road_transform = this.road_transform.times(
             Mat4.translation(0, -0.5, 0)
