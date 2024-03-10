@@ -136,8 +136,13 @@ export class CarGame extends Scene {
     this.time_elapsed_2 = 0;
     this.time_elapsed_3 = 0;
 
+    this.time_elapsed = [0,0,0,0,0,0];
+
     this.car_transform = Mat4.identity();
     this.traffic_transform = [
+      (this.car_transform = Mat4.identity()),
+      (this.car_transform = Mat4.identity()),
+      (this.car_transform = Mat4.identity()),
       (this.car_transform = Mat4.identity()),
       (this.car_transform = Mat4.identity()),
       (this.car_transform = Mat4.identity()),
@@ -512,84 +517,54 @@ export class CarGame extends Scene {
   }
 
   generate_traffic(context, program_state, t) {
+
     if (!this.collision_detected) {
-      const trafficZ = [-175, -200, -150];
+
+      const trafficZ = [-135, -200, -150, -170, -230, -210];
 
       for (let i = 0; i < this.traffic_transform.length; i++) {
+        let x_dist = i;
+        if (i>2){
+          x_dist=i-3;
+        }
         this.traffic_transform[i].car_transform = Mat4.translation(
-          5 - 5 * i,
-          0.6,
-          trafficZ[i]
+            5 - 5 * x_dist,
+            0.6,
+            trafficZ[i]
         ).times(Mat4.scale(1.25, 1.25, 1.25));
       }
 
-      if (
-        5 * (t - this.time_elapsed_1) <=
-        Math.abs(trafficZ[0]) / this.game_speed
-      ) {
-        this.traffic_transform[0].car_transform =
-          this.traffic_transform[0].car_transform.times(
-            Mat4.translation(
-              0,
-              0,
-              5 * this.game_speed * 1.25 * (t - this.time_elapsed_1)
-            )
-          );
-      } else {
-        this.time_elapsed_1 = t;
-      }
+      for (let i = 0; i < 6; i++) {
 
-      if (
-        5 * (t - this.time_elapsed_2) <=
-        Math.abs(trafficZ[1]) / (this.game_speed * 1.45)
-      ) {
-        this.traffic_transform[1].car_transform =
-          this.traffic_transform[1].car_transform.times(
-            Mat4.translation(
-              0,
-              0,
-              5 * this.game_speed * 1.25 * (t - this.time_elapsed_2)
-            )
-          );
-      } else {
-        this.time_elapsed_2 = t;
-      }
+        if (
+            5 * (t - this.time_elapsed[i]) <=
+            Math.abs(trafficZ[i]) / this.game_speed
+        ) {
+          this.traffic_transform[i].car_transform =
+              this.traffic_transform[i].car_transform.times(
+                  Mat4.translation(
+                      0,
+                      0,
+                      5 * this.game_speed * 1.25 * (t - this.time_elapsed[i])
+                  )
+              );
+        } else {
+          this.time_elapsed[i] = t;
+        }
 
-      if (
-        5 * (t - this.time_elapsed_3) <=
-        Math.abs(trafficZ[2]) / this.game_speed + Math.random() * 4
-      ) {
-        this.traffic_transform[2].car_transform =
-          this.traffic_transform[2].car_transform.times(
-            Mat4.translation(
-              0,
-              0,
-              5 * this.game_speed * 1.25 * (t - this.time_elapsed_3)
-            )
-          );
-      } else {
-        this.time_elapsed_3 = t;
       }
     }
 
-    this.cars[0].car.draw(
-      context,
-      program_state,
-      this.traffic_transform[0].car_transform,
-      this.materials.car
-    );
-    this.cars[1].car.draw(
-      context,
-      program_state,
-      this.traffic_transform[1].car_transform,
-      this.materials.car
-    );
-    this.cars[2].car.draw(
-      context,
-      program_state,
-      this.traffic_transform[2].car_transform,
-      this.materials.car
-    );
+    for (let i=0; i<6; i++){
+      this.cars[i].car.draw(
+          context,
+          program_state,
+          this.traffic_transform[i].car_transform,
+          this.materials.car
+      );
+
+    }
+
   }
 
   checkCollision() {
