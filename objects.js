@@ -1,9 +1,21 @@
-import {tiny} from '../tiny-graphics.js';
-import {widgets} from '../tiny-graphics-widgets.js';
+import { tiny } from "../tiny-graphics.js";
+import { widgets } from "../tiny-graphics-widgets.js";
 // Pull these names into this module's scope for convenience:
 const {
-  Vector, Vector3, vec, vec3, vec4, color, Matrix, Mat4,
-  Light, Shape, Material, Shader, Texture, Scene
+  Vector,
+  Vector3,
+  vec,
+  vec3,
+  vec4,
+  color,
+  Matrix,
+  Mat4,
+  Light,
+  Shape,
+  Material,
+  Shader,
+  Texture,
+  Scene,
 } = tiny;
 
 Object.assign(tiny, widgets);
@@ -136,6 +148,64 @@ const Square = (defs.Square = class Square extends Shape {
     this.indices.push(0, 1, 2, 1, 3, 2);
   }
 });
+
+export class Text_Line extends Shape {
+  // **Text_Line** embeds text in the 3D world, using a crude texture
+  // method.  This Shape is made of a horizontal arrangement of quads.
+  // Each is textured over with images of ASCII characters, spelling
+  // out a string.  Usage:  Instantiate the Shape with the desired
+  // character line width.  Then assign it a single-line string by calling
+  // set_string("your string") on it. Draw the shape on a material
+  // with full ambient weight, and text.png assigned as its texture
+  // file.  For multi-line strings, repeat this process and draw with
+  // a different matrix.
+  constructor(max_size) {
+    super("position", "normal", "texture_coord");
+    this.max_size = max_size;
+    var object_transform = Mat4.identity();
+    for (var i = 0; i < max_size; i++) {
+      // Each quad is a separate Square instance:
+      defs.Square.insert_transformed_copy_into(this, [], object_transform);
+      object_transform.post_multiply(Mat4.translation(1.5, 0, 0));
+    }
+  }
+
+  set_string(line, context) {
+    // set_string():  Call this to overwrite the texture coordinates buffer with new
+    // values per quad, which enclose each of the string's characters.
+    this.arrays.texture_coord = [];
+    for (var i = 0; i < this.max_size; i++) {
+      var row = Math.floor(
+          (i < line.length ? line.charCodeAt(i) : " ".charCodeAt()) / 16
+        ),
+        col = Math.floor(
+          (i < line.length ? line.charCodeAt(i) : " ".charCodeAt()) % 16
+        );
+
+      var skip = 3,
+        size = 32,
+        sizefloor = size - skip;
+      var dim = size * 16,
+        left = (col * size + skip) / dim,
+        top = (row * size + skip) / dim,
+        right = (col * size + sizefloor) / dim,
+        bottom = (row * size + sizefloor + 5) / dim;
+
+      this.arrays.texture_coord.push(
+        ...Vector.cast(
+          [left, 1 - bottom],
+          [right, 1 - bottom],
+          [left, 1 - top],
+          [right, 1 - top]
+        )
+      );
+    }
+    if (!this.existing) {
+      this.copy_onto_graphics_card(context);
+      this.existing = true;
+    } else this.copy_onto_graphics_card(context, ["texture_coord"], false);
+  }
+}
 
 const Tetrahedron = (defs.Tetrahedron = class Tetrahedron extends Shape {
   // **Tetrahedron** demonstrates flat vs smooth shading (a boolean argument selects
@@ -1102,25 +1172,28 @@ const Phong_Shader = (defs.Phong_Shader = class Phong_Shader extends Shader {
   }
 });
 
-const Textured_Phong = defs.Textured_Phong =
-    class Textured_Phong extends Phong_Shader {
-      constructor(num_lights = 2) {
-        super();
-        this.num_lights = num_lights;
-        this.uniforms = {
-          // Other uniforms
-          animation_time: 0,
-          stop_update: 0,
-          offset: 0.0,
-          // ...
-        };
-      }
-      // **Textured_Phong** is a Phong Shader extended to addditionally decal a
-      // texture image over the drawn shape, lined up according to the texture
-      // coordinates that are stored at each shape vertex.
-      vertex_glsl_code() {
-        // ********* VERTEX SHADER *********
-        return this.shared_glsl_code() + `
+const Textured_Phong = (defs.Textured_Phong = class Textured_Phong extends (
+  Phong_Shader
+) {
+  constructor(num_lights = 2) {
+    super();
+    this.num_lights = num_lights;
+    this.uniforms = {
+      // Other uniforms
+      animation_time: 0,
+      stop_update: 0,
+      offset: 0.0,
+      // ...
+    };
+  }
+  // **Textured_Phong** is a Phong Shader extended to addditionally decal a
+  // texture image over the drawn shape, lined up according to the texture
+  // coordinates that are stored at each shape vertex.
+  vertex_glsl_code() {
+    // ********* VERTEX SHADER *********
+    return (
+      this.shared_glsl_code() +
+      `
                 varying vec2 f_tex_coord;
                 attribute vec3 position, normal;                            
                 // Position is expressed in object coordinates.
@@ -1146,14 +1219,17 @@ const Textured_Phong = defs.Textured_Phong =
                     } else {
                         f_tex_coord = texture_coord; // Maintain original texture coordinates
                     }
-                  } `;
-      }
+                  } `
+    );
+  }
 
-      fragment_glsl_code() {
-        // ********* FRAGMENT SHADER *********
-        // A fragment is a pixel that's overlapped by the current triangle.
-        // Fragments affect the final image or get discarded due to depth.
-        return this.shared_glsl_code() + `
+  fragment_glsl_code() {
+    // ********* FRAGMENT SHADER *********
+    // A fragment is a pixel that's overlapped by the current triangle.
+    // Fragments affect the final image or get discarded due to depth.
+    return (
+      this.shared_glsl_code() +
+      `
                 varying vec2 f_tex_coord;
                 uniform sampler2D texture;
         
@@ -1165,32 +1241,40 @@ const Textured_Phong = defs.Textured_Phong =
                     gl_FragColor = vec4( ( tex_color.xyz + shape_color.xyz ) * ambient, shape_color.w * tex_color.w ); 
                                                                              // Compute the final color with contributions from lights:
                     gl_FragColor.xyz += phong_model_lights( normalize( N ), vertex_worldspace );
-                  } `;
-      }
+                  } `
+    );
+  }
 
-      update_GPU(context, gpu_addresses, gpu_state, model_transform, material) {
-        // update_GPU(): Add a little more to the base class's version of this method.
-        super.update_GPU(context, gpu_addresses, gpu_state, model_transform, material);
+  update_GPU(context, gpu_addresses, gpu_state, model_transform, material) {
+    // update_GPU(): Add a little more to the base class's version of this method.
+    super.update_GPU(
+      context,
+      gpu_addresses,
+      gpu_state,
+      model_transform,
+      material
+    );
 
-        if (material.texture && material.texture.ready) {
-          // Select texture unit 0 for the fragment shader Sampler2D uniform called "texture":
-          context.uniform1i(gpu_addresses.texture, 0);
-          // For this draw, use the texture image from correct the GPU buffer:
-          material.texture.activate(context);
-        }
-        if (gpu_addresses.animation_time !== undefined) {
-          context.uniform1f(gpu_addresses.animation_time, gpu_state.animation_time / 1000);
-        }
-        if (gpu_addresses.stop_update !== undefined) {
-          context.uniform1i(gpu_addresses.stop_update, this.uniforms.stop_update);
-        }
-        if (gpu_addresses.offset !== undefined) {
-          context.uniform1f(gpu_addresses.offset, this.uniforms.offset);
-        }
-
-      }
+    if (material.texture && material.texture.ready) {
+      // Select texture unit 0 for the fragment shader Sampler2D uniform called "texture":
+      context.uniform1i(gpu_addresses.texture, 0);
+      // For this draw, use the texture image from correct the GPU buffer:
+      material.texture.activate(context);
     }
-
+    if (gpu_addresses.animation_time !== undefined) {
+      context.uniform1f(
+        gpu_addresses.animation_time,
+        gpu_state.animation_time / 1000
+      );
+    }
+    if (gpu_addresses.stop_update !== undefined) {
+      context.uniform1i(gpu_addresses.stop_update, this.uniforms.stop_update);
+    }
+    if (gpu_addresses.offset !== undefined) {
+      context.uniform1f(gpu_addresses.offset, this.uniforms.offset);
+    }
+  }
+});
 
 const Fake_Bump_Map = (defs.Fake_Bump_Map = class Fake_Bump_Map extends (
   Textured_Phong

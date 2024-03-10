@@ -1,4 +1,4 @@
-import { tiny, defs } from "./objects.js";
+import { tiny, defs, Text_Line } from "./objects.js";
 import { Shapes_From_File, Custom_Shader } from "./object_loader.js";
 
 const {
@@ -43,6 +43,8 @@ export class CarGame extends Scene {
       // car6: new Shapes_From_File("assets/Car6.obj"),
       // car7: new Shapes_From_File("assets/Car7.obj"),
       coin: new defs.Cube(2, 2, 2),
+      text: new Text_Line(35),
+      cube: new defs.Cube(),
     };
 
     this.shapes.grass.arrays.texture_coord.forEach((element) => {
@@ -78,6 +80,14 @@ export class CarGame extends Scene {
       car: new Material(new Textured_Phong(), {
         ambient: 1,
       }),
+      grey: new Material(new defs.Phong_Shader(), {
+        color: color(0.5, 0.5, 0.5, 1),
+        ambient: 0,
+        diffusivity: 0.3,
+        specularity: 0.5,
+        smoothness: 10,
+      }),
+      cube: new defs.Cube(),
       road: new Material(new Textured_Phong(), {
         ambient: 0.5,
         texture: new Texture("assets/road_texture.png"),
@@ -86,6 +96,12 @@ export class CarGame extends Scene {
       grass: new Material(new Textured_Phong(), {
         ambient: 0.5,
         texture: new Texture("assets/grass.png"),
+      }),
+      text_image: new Material(new defs.Textured_Phong(1), {
+        ambient: 1,
+        diffusivity: 0,
+        specularity: 0,
+        texture: new Texture("assets/text.png"),
       }),
       // tree: new Material(new defs.Phong_Shader(), {
       //     color: hex_color("#462500"),
@@ -198,6 +214,12 @@ export class CarGame extends Scene {
     this.coin_transform = Mat4.identity(); // The coin's transformation matrix
     this.coin_interval = 5; // The interval between coin generations
     this.coin_rotation_angle = 0.01;
+
+    //score
+    this.score_transformation = Mat4.identity().times(
+      Mat4.translation(5, 8, 0)
+    );
+    this.score = 0;
   }
 
   calculateAcceleration(force, mass) {}
@@ -537,6 +559,7 @@ export class CarGame extends Scene {
           );
       } else {
         this.time_elapsed_1 = t;
+        this.score += 1;
       }
 
       if (
@@ -553,6 +576,7 @@ export class CarGame extends Scene {
           );
       } else {
         this.time_elapsed_2 = t;
+        this.score += 1;
       }
 
       if (
@@ -569,6 +593,7 @@ export class CarGame extends Scene {
           );
       } else {
         this.time_elapsed_3 = t;
+        this.score += 1;
       }
     }
 
@@ -678,6 +703,13 @@ export class CarGame extends Scene {
     this.materials.road.shader.uniforms.animation_time = 0;
 
     this.resetTime = true;
+
+    //score update
+    this.score = 0;
+
+    // coin update
+    this.coin_generated = false;
+    this.last_coin_time = 0;
   }
 
   update_state(dt) {
@@ -739,7 +771,14 @@ export class CarGame extends Scene {
       // Randomly select a lane for the coin
       const laneIndex = Math.floor(Math.random() * 3);
       const lanePositionX = 5 - 5 * laneIndex;
-      this.coin_speed = Math.random();
+      let random = Math.random();
+      if (random < 5 / 6) {
+        // 5 out of 6 chances to be in the 0-0.5 range
+        this.coin_speed = (random * 0.5) / (5 / 6);
+      } else {
+        // 1 out of 6 chances to be in the 0.51-1 range
+        this.coin_speed = 0.51 + (random - 5 / 6) * (0.49 / (1 / 6));
+      }
 
       if (this.coin_speed < 0.1) {
         this.coin_speed = 0.1;
@@ -777,6 +816,16 @@ export class CarGame extends Scene {
         this.materials.coin
       );
     }
+  }
+
+  generateScore(context, program_state) {
+    this.shapes.text.set_string(`Score: ${this.score}`, context.context);
+    this.shapes.text.draw(
+      context,
+      program_state,
+      this.score_transformation.times(Mat4.scale(0.5, 0.5, 0.5)),
+      this.materials.text_image
+    );
   }
 
   display(context, program_state) {
@@ -851,6 +900,32 @@ export class CarGame extends Scene {
     this.generate_traffic(context, program_state, (t - dt) / 5);
 
     this.generate_coins(context, program_state, t);
+
+    if (!this.collision_detected) {
+      this.generateScore(context, program_state);
+    } else {
+      this.shapes.text.set_string(
+        `Game Over! Your score is: ${this.score}`,
+        context.context
+      );
+      this.shapes.text.draw(
+        context,
+        program_state,
+        Mat4.identity()
+          .times(Mat4.translation(-9, 5, 0))
+          .times(Mat4.scale(0.5, 0.5, 0.5)),
+        this.materials.text_image
+      );
+      this.shapes.text.set_string(`Press R to restart`, context.context);
+      this.shapes.text.draw(
+        context,
+        program_state,
+        Mat4.identity()
+          .times(Mat4.translation(-5, 4, 0))
+          .times(Mat4.scale(0.5, 0.5, 0.5)),
+        this.materials.text_image
+      );
+    }
 
     const road_transform = this.road_transform.times(
       Mat4.translation(0, -0.5, 0)
