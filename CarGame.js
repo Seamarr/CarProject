@@ -113,7 +113,6 @@ export class CarGame extends Scene {
         texture: new Texture("assets/stars_.png"),
       }),
       coin: new Material(new Textured_Phong(), {
-      coin: new Material(new Textured_Phong(), {
         ambient: 1,
         texture: new Texture("assets/qmark2.png"),
       }),
