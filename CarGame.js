@@ -19,6 +19,16 @@ const {
   Scene,
 } = tiny;
 const { Textured_Phong } = defs;
+
+//function generateRandomNumbers() {
+  //return new Promise((resolve, reject) => {
+    //this.randomCarNum = Math.round(Math.random() * 8);
+    //this.randomCarNum2 = Math.round(Math.random() * 8);
+    //this.randomCarNum3 = Math.round(Math.random() * 8);
+    //this.randomCarNum4 = Math.round(Math.random() * 8);
+    //resolve();
+  //});
+//}
 export class CarGame extends Scene {
   constructor() {
     // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
@@ -67,10 +77,10 @@ export class CarGame extends Scene {
       { car: new Shapes_From_File("assets/Car7.obj") },
     ];
 
-    this.randomCarNum = Math.round(Math.random() * 8);
-    this.randomCarNum2 = Math.round(Math.random() * 8);
-    this.randomCarNum3 = Math.round(Math.random() * 8);
-    this.randomCarNum4 = Math.round(Math.random() * 8);
+    this.randomCarNum = 0;
+    this.randomCarNum2 = 0;
+    this.randomCarNum3 = 0;
+    this.randomCarNum4 = 0;
     this.resetTime = false;
 
     // *** Materials
@@ -182,6 +192,7 @@ export class CarGame extends Scene {
     }
 
     this.collision_threshold = 2;
+    this.collision_threshold_traffic = 2.5;
     this.collision_detected = false;
 
     console.log(this.acceleration_rate);
@@ -570,19 +581,19 @@ export class CarGame extends Scene {
       }
     }
 
-    this.cars[this.randomCarNum2].car.draw(
+    this.cars[0].car.draw(
       context,
       program_state,
       this.traffic_transform[0].car_transform,
       this.materials.car
     );
-    this.cars[this.randomCarNum2].car.draw(
+    this.cars[1].car.draw(
       context,
       program_state,
       this.traffic_transform[1].car_transform,
       this.materials.car
     );
-    this.cars[this.randomCarNum2].car.draw(
+    this.cars[2].car.draw(
       context,
       program_state,
       this.traffic_transform[2].car_transform,
@@ -602,6 +613,26 @@ export class CarGame extends Scene {
           Math.pow(car_pos[2] - traffic_pos[2], 2)
       );
       if (distance < this.collision_threshold) {
+        this.collision_detected = true;
+        this.materials.road.shader.uniforms.stop_texture_update = 1; // Stop texture update
+        this.materials.road.shader.uniforms.offset = 0;
+        break;
+      }
+    }
+  }
+
+  checkTrafficCollision() {
+    const car_pos = this.car_transform.times(vec4(0, 0, 0, 1)); //get a snapshot of the car position
+    for (let i = 0; i < this.traffic_transform.length; i++) {
+      const traffic_pos = this.traffic_transform[i].car_transform.times(
+          vec4(0, 0, 0, 1)
+      );
+      const distance = Math.sqrt(
+          Math.pow(0.88*(car_pos[0] - traffic_pos[0]), 2) +
+          Math.pow(car_pos[1] - traffic_pos[1], 2) +
+          Math.pow(0.45*(car_pos[2] - traffic_pos[2]), 2)
+      );
+      if (distance < this.collision_threshold_traffic) {
         this.collision_detected = true;
         this.materials.road.shader.uniforms.stop_texture_update = 1; // Stop texture update
         this.materials.road.shader.uniforms.offset = 0;
@@ -654,6 +685,8 @@ export class CarGame extends Scene {
     this.materials.road.shader.uniforms.stop_texture_update = 0;
     this.materials.road.shader.uniforms.texture_offset = 0;
     this.materials.road.shader.uniforms.animation_time = 0;
+
+    this.resetTime = true;
   }
 
   update_state(dt) {
@@ -801,6 +834,7 @@ export class CarGame extends Scene {
     if (this.resetTime) {
       program_state.animation_time = 0;
       program_state.animation_delta_time = 0;
+      this.game_speed = 0;
       this.resetTime = false;
     }
 
@@ -890,7 +924,7 @@ export class CarGame extends Scene {
       );
     }
 
-    this.cars[this.randomCarNum].car.draw(
+    this.cars[4].car.draw(
       context,
       program_state,
       this.car_transform,
@@ -907,89 +941,7 @@ export class CarGame extends Scene {
     const original_tree_position_2 = -200;
     const original_car2_position = -160;
 
-    this.checkCollision();
+    //this.checkCollision();
+    this.checkTrafficCollision();
   }
 }
-/*
-* this.tree_transform_1 = this.tree_transform_1.times(
-      Mat4.translation(-18, -0.5, original_tree_position_1)
-    );
-
-  //   if (
-  //     5 * (t - this.time_elapsed_1) <=
-  //     Math.abs(original_tree_position_1) / this.acceleration_rate + 2
-  //   ) {
-  //     this.tree_transform_1 = this.tree_transform_1.times(
-  //       Mat4.translation(
-  //         0,
-  //         0,
-  //         5 * this.acceleration_rate * (t - this.time_elapsed_1)
-  //       )
-  //     );
-  //   } else {
-  //     this.time_elapsed_1 = t;
-  //   }
-  //   this.shapes.tree.draw(
-  //     context,
-  //     program_state,
-  //     this.tree_transform_1,
-  //     this.materials.tree
-  //   );
-
-  //   this.tree_transform_2 = this.road_transform.times(
-  //     Mat4.translation(-18, 0, original_tree_position_2)
-  //   );
-
-  //   if (
-  //     5 * (t - this.time_elapsed_2) <=
-  //     Math.abs(original_tree_position_2) / this.acceleration_rate + 2
-  //   ) {
-  //     this.tree_transform_2 = this.tree_transform_2.times(
-  //       Mat4.translation(
-  //         0,
-  //         0,
-  //         5 * this.acceleration_rate * (t - this.time_elapsed_2)
-  //       )
-  //     );
-  //   } else {
-  //     this.time_elapsed_2 = t;
-  //   }
-  //   this.shapes.tree.draw(
-  //     context,
-  //     program_state,
-  //     this.tree_transform_2,
-  //     this.materials.tree
-  //   );
-
-  //   this.tree_transform_1 = this.tree_transform_1.times(
-  //     Mat4.translation(-5, 5, 0)
-  //   );
-  //   this.tree_transform_2 = this.tree_transform_2.times(
-  //     Mat4.translation(5, 5, 0)
-  //   );
-
-  //   for (let i = 0; i < 4; i++) {
-  //     this.shapes.leaves.draw(
-  //       context,
-  //       program_state,
-  //       this.tree_transform_1,
-  //       this.materials.leaves
-  //     );
-  //     this.shapes.leaves.draw(
-  //       context,
-  //       program_state,
-  //       this.tree_transform_2,
-  //       this.materials.leaves
-  //     );
-  //     this.tree_transform_1 = this.tree_transform_1
-  //       .times(Mat4.translation(5, 0, 0)) // Translate to origin
-  //       .times(Mat4.rotation(Math.PI / 2, 0, 1, 0)) // Rotate around origin
-  //       .times(Mat4.translation(-5, 0, 0)); // Translate back
-
-  //     this.tree_transform_2 = this.tree_transform_2
-  //       .times(Mat4.translation(-5, -5, 0)) // Translate to origin
-  //       .times(Mat4.rotation(Math.PI / 2, 0, 1, 0)) // Rotate around origin
-  //       .times(Mat4.translation(5, 5, 0)); // Translate back
-    // }
-  // }
-*/
