@@ -42,6 +42,7 @@ export class CarGame extends Scene {
       // car5: new Shapes_From_File("assets/Car5.obj"),
       // car6: new Shapes_From_File("assets/Car6.obj"),
       // car7: new Shapes_From_File("assets/Car7.obj"),
+      coin: new defs.Cube(2, 2, 2),
     };
 
     this.shapes.grass.arrays.texture_coord.forEach((element) => {
@@ -111,6 +112,10 @@ export class CarGame extends Scene {
         ambient: 1,
         texture: new Texture("assets/stars_.png"),
       }),
+      coin: new Material(new defs.Phong_Shader(), {
+        ambient: 1,
+        color: hex_color("FFFF00"),
+      }),
     };
 
     //    this.initial_camera_location = Mat4.look_at(
@@ -176,7 +181,7 @@ export class CarGame extends Scene {
       this.acceleration_rate = 0;
     }
 
-    this.collision_threshold = 5;
+    this.collision_threshold = 2;
     this.collision_detected = false;
 
     console.log(this.acceleration_rate);
@@ -184,6 +189,13 @@ export class CarGame extends Scene {
     this.tilt_angle = 0;
     this.current_tilt = 0;
     this.target_tilt = 0;
+
+    //coin stuff
+    this.last_coin_time = 0; // Tracks the last time a coin was generated
+    this.coin_generated = false; // Indicates if a coin is currently generated and on the screen
+    this.coin_speed = 10; // You can adjust this based on your game's speed or dynamics
+    this.coin_transform = Mat4.identity(); // The coin's transformation matrix
+    this.coin_interval = 5; // The interval between coin generations
   }
 
   calculateAcceleration(force, mass) {}
@@ -698,6 +710,48 @@ export class CarGame extends Scene {
     }
   }
 
+  generate_coins(context, program_state, t) {
+    if (!this.coin_generated && t - this.last_coin_time >= this.coin_interval) {
+      // Randomly select a lane for the coin
+      const laneIndex = Math.floor(Math.random() * 3);
+      const lanePositionX = 5 - 5 * laneIndex;
+
+      // Reset coin_transform for the new coin
+      this.coin_transform = Mat4.translation(lanePositionX, 0.6, -200); // Adjust Z to match your game's depth
+
+      this.coin_generated = true;
+    }
+
+    // Logic to move the coin
+    if (this.coin_generated) {
+      let coinZ = this.coin_transform[2][3]; // Extract the Z component of the translation
+      if (coinZ > 20) {
+        // Replace someThreshold with the Z value at which coins should respawn
+        this.coin_generated = false; // Allow a new coin to spawn
+        this.last_coin_time = t;
+      } else {
+        // Continue moving the coin towards the player
+        this.coin_transform = this.coin_transform.times(
+          Mat4.translation(
+            0,
+            0,
+            this.game_speed * (program_state.animation_delta_time / 1000)
+          )
+        );
+      }
+    }
+
+    // Drawing the coin
+    if (this.coin_generated) {
+      this.shapes.coin.draw(
+        context,
+        program_state,
+        this.coin_transform,
+        this.materials.coin
+      );
+    }
+  }
+
   display(context, program_state) {
     // display():  Called once per frame of animation.
     // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
@@ -767,6 +821,8 @@ export class CarGame extends Scene {
         ((this.game_speed / 2) * t - dt) / 900;
     }
     this.generate_traffic(context, program_state, (t - dt) / 5);
+
+    this.generate_coins(context, program_state, t);
 
     const road_transform = this.road_transform.times(
       Mat4.translation(0, -0.5, 0)
