@@ -21,13 +21,13 @@ const {
 const { Textured_Phong } = defs;
 
 //function generateRandomNumbers() {
-  //return new Promise((resolve, reject) => {
-    //this.randomCarNum = Math.round(Math.random() * 8);
-    //this.randomCarNum2 = Math.round(Math.random() * 8);
-    //this.randomCarNum3 = Math.round(Math.random() * 8);
-    //this.randomCarNum4 = Math.round(Math.random() * 8);
-    //resolve();
-  //});
+//return new Promise((resolve, reject) => {
+//this.randomCarNum = Math.round(Math.random() * 8);
+//this.randomCarNum2 = Math.round(Math.random() * 8);
+//this.randomCarNum3 = Math.round(Math.random() * 8);
+//this.randomCarNum4 = Math.round(Math.random() * 8);
+//resolve();
+//});
 //}
 export class CarGame extends Scene {
   constructor() {
@@ -122,9 +122,9 @@ export class CarGame extends Scene {
         ambient: 1,
         texture: new Texture("assets/stars_.png"),
       }),
-      coin: new Material(new defs.Phong_Shader(), {
+      coin: new Material(new Textured_Phong(), {
         ambient: 1,
-        color: hex_color("FFFF00"),
+        texture: new Texture("assets/rainbow_road.png"),
       }),
     };
 
@@ -625,12 +625,12 @@ export class CarGame extends Scene {
     const car_pos = this.car_transform.times(vec4(0, 0, 0, 1)); //get a snapshot of the car position
     for (let i = 0; i < this.traffic_transform.length; i++) {
       const traffic_pos = this.traffic_transform[i].car_transform.times(
-          vec4(0, 0, 0, 1)
+        vec4(0, 0, 0, 1)
       );
       const distance = Math.sqrt(
-          Math.pow(0.88*(car_pos[0] - traffic_pos[0]), 2) +
+        Math.pow(0.88 * (car_pos[0] - traffic_pos[0]), 2) +
           Math.pow(car_pos[1] - traffic_pos[1], 2) +
-          Math.pow(0.45*(car_pos[2] - traffic_pos[2]), 2)
+          Math.pow(0.45 * (car_pos[2] - traffic_pos[2]), 2)
       );
       if (distance < this.collision_threshold_traffic) {
         this.collision_detected = true;
@@ -750,13 +750,13 @@ export class CarGame extends Scene {
       const lanePositionX = 5 - 5 * laneIndex;
 
       // Reset coin_transform for the new coin
-      this.coin_transform = Mat4.translation(lanePositionX, 0.6, -200); // Adjust Z to match your game's depth
-
+      this.coin_transform = Mat4.scale(1, 0.2, 1) // Scale the coin
+        .times(Mat4.translation(lanePositionX, 0.6, -200)); // Then translate it to the desired position
       this.coin_generated = true;
     }
 
     // Logic to move the coin
-    if (this.coin_generated) {
+    if (this.coin_generated && !this.collision_detected) {
       let coinZ = this.coin_transform[2][3]; // Extract the Z component of the translation
       if (coinZ > 20) {
         // Replace someThreshold with the Z value at which coins should respawn
