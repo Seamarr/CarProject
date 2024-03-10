@@ -741,7 +741,7 @@ export class CarGame extends Scene {
       const lanePositionX = 5 - 5 * laneIndex;
       this.coin_speed = Math.random();
 
-      if (this.coin_speed == 0) {
+      if (this.coin_speed < 0.1) {
         this.coin_speed = 0.1;
       }
 
