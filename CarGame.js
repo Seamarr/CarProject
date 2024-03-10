@@ -19,16 +19,6 @@ const {
   Scene,
 } = tiny;
 const { Textured_Phong } = defs;
-
-//function generateRandomNumbers() {
-//return new Promise((resolve, reject) => {
-//this.randomCarNum = Math.round(Math.random() * 8);
-//this.randomCarNum2 = Math.round(Math.random() * 8);
-//this.randomCarNum3 = Math.round(Math.random() * 8);
-//this.randomCarNum4 = Math.round(Math.random() * 8);
-//resolve();
-//});
-//}
 export class CarGame extends Scene {
   constructor() {
     // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
@@ -123,6 +113,7 @@ export class CarGame extends Scene {
         texture: new Texture("assets/stars_.png"),
       }),
       coin: new Material(new Textured_Phong(), {
+      coin: new Material(new Textured_Phong(), {
         ambient: 1,
         texture: new Texture("assets/qmark2.png"),
       }),
@@ -176,9 +167,9 @@ export class CarGame extends Scene {
     this.max_speed = 10;
 
     this.car_mass = 9;
-    this.coefficient_of_friction = 0.2;
-    this.applied_force = 50;
-    this.braking_force = 1;
+    this.coefficient_of_friction = 1.0;
+    this.applied_force = 10000;
+    this.braking_force = 5000;
     this.friction_force = this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
 
     this.total_acceleration_force = this.applied_force - this.friction_force;
@@ -662,9 +653,9 @@ export class CarGame extends Scene {
     this.max_speed = 10;
 
     this.car_mass = 9;
-    this.coefficient_of_friction = 0.2;
-    this.applied_force = 50;
-    this.braking_force = 1;
+    this.coefficient_of_friction = 1.0;
+    this.applied_force = 10000;
+    this.braking_force = 5000;
     this.friction_force = this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
 
     this.total_acceleration_force = this.applied_force - this.friction_force;
