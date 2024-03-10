@@ -124,7 +124,7 @@ export class CarGame extends Scene {
       }),
       coin: new Material(new Textured_Phong(), {
         ambient: 1,
-        texture: new Texture("assets/rainbow_road.png"),
+        texture: new Texture("assets/qmark2.png"),
       }),
     };
 
@@ -204,9 +204,10 @@ export class CarGame extends Scene {
     //coin stuff
     this.last_coin_time = 0; // Tracks the last time a coin was generated
     this.coin_generated = false; // Indicates if a coin is currently generated and on the screen
-    this.coin_speed = 10; // You can adjust this based on your game's speed or dynamics
+    this.coin_speed = 1; // You can adjust this based on your game's speed or dynamics
     this.coin_transform = Mat4.identity(); // The coin's transformation matrix
     this.coin_interval = 5; // The interval between coin generations
+    this.coin_rotation_angle = 0.01;
   }
 
   calculateAcceleration(force, mass) {}
@@ -748,29 +749,32 @@ export class CarGame extends Scene {
       // Randomly select a lane for the coin
       const laneIndex = Math.floor(Math.random() * 3);
       const lanePositionX = 5 - 5 * laneIndex;
+      this.coin_speed = Math.random();
+
+      if (this.coin_speed == 0) {
+        this.coin_speed = 0.1;
+      }
 
       // Reset coin_transform for the new coin
-      this.coin_transform = Mat4.scale(1, 0.2, 1) // Scale the coin
-        .times(Mat4.translation(lanePositionX, 0.6, -200)); // Then translate it to the desired position
+      this.coin_transform = Mat4.rotation(Math.PI / 2, 1, 0, 0)
+        .times(Mat4.scale(1, 0.2, 1)) // Scale the coin
+        .times(Mat4.translation(lanePositionX, -950, -2)); // Then translate it to the desired position
       this.coin_generated = true;
     }
 
     // Logic to move the coin
     if (this.coin_generated && !this.collision_detected) {
-      let coinZ = this.coin_transform[2][3]; // Extract the Z component of the translation
+      // Adjust to check the coin's position along the Y-axis, assuming it's the new forward direction
+      let coinZ = this.coin_transform[2][3];
       if (coinZ > 20) {
-        // Replace someThreshold with the Z value at which coins should respawn
+        // Adjust condition to match the new axis
         this.coin_generated = false; // Allow a new coin to spawn
         this.last_coin_time = t;
       } else {
-        // Continue moving the coin towards the player
-        this.coin_transform = this.coin_transform.times(
-          Mat4.translation(
-            0,
-            0,
-            this.game_speed * (program_state.animation_delta_time / 1000)
-          )
-        );
+        // Move the coin along its new forward direction, which is the Y-axis after rotation
+        this.coin_transform = Mat4.translation(0, 0, this.coin_speed) // Move the coin along its new Y-axis
+          .times(this.coin_transform) // Apply existing transformations
+          .times(Mat4.rotation(this.coin_rotation_angle, 0, 0, 1)); // Add rotation around the x-axis
       }
     }
 
