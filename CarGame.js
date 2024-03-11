@@ -559,7 +559,7 @@ export class CarGame extends Scene {
           );
       } else {
         this.time_elapsed_1 = t;
-        //this.score += 1;
+        this.score += 1;
       }
 
       if (
@@ -576,7 +576,7 @@ export class CarGame extends Scene {
           );
       } else {
         this.time_elapsed_2 = t;
-        //this.score += 1;
+        this.score += 1;
       }
 
       if (
@@ -593,7 +593,7 @@ export class CarGame extends Scene {
           );
       } else {
         this.time_elapsed_3 = t;
-        //this.score += 1;
+        this.score += 1;
       }
     }
 
@@ -621,13 +621,13 @@ export class CarGame extends Scene {
     const car_pos = this.car_transform.times(vec4(0, 0, 0, 1)); //get a snapshot of the car position
     const coin_pos = this.coin_transform.times(vec4(0, 0, 0, 1));
     const distance = Math.sqrt(
-        Math.pow(car_pos[0] - coin_pos[0], 2) +
+      Math.pow(car_pos[0] - coin_pos[0], 2) +
         Math.pow(car_pos[1] - coin_pos[1], 2) +
         Math.pow(car_pos[2] - coin_pos[2], 2)
     );
     if (distance < this.collision_threshold_coin && this.coin_generated) {
       this.coin_generated = false;
-      this.score++;
+      this.score += 3;
     }
   }
 
