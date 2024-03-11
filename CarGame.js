@@ -197,7 +197,7 @@ export class CarGame extends Scene {
       this.acceleration_rate = 0;
     }
 
-    this.collision_threshold = 2;
+    this.collision_threshold_coin = 2.5;
     this.collision_threshold_traffic = 2.5;
     this.collision_detected = false;
 
@@ -559,7 +559,7 @@ export class CarGame extends Scene {
           );
       } else {
         this.time_elapsed_1 = t;
-        this.score += 1;
+        //this.score += 1;
       }
 
       if (
@@ -576,7 +576,7 @@ export class CarGame extends Scene {
           );
       } else {
         this.time_elapsed_2 = t;
-        this.score += 1;
+        //this.score += 1;
       }
 
       if (
@@ -593,7 +593,7 @@ export class CarGame extends Scene {
           );
       } else {
         this.time_elapsed_3 = t;
-        this.score += 1;
+        //this.score += 1;
       }
     }
 
@@ -617,23 +617,17 @@ export class CarGame extends Scene {
     );
   }
 
-  checkCollision() {
+  checkCoinCollision() {
     const car_pos = this.car_transform.times(vec4(0, 0, 0, 1)); //get a snapshot of the car position
-    for (let i = 0; i < this.traffic_transform.length; i++) {
-      const traffic_pos = this.traffic_transform[i].car_transform.times(
-        vec4(0, 0, 0, 1)
-      );
-      const distance = Math.sqrt(
-        Math.pow(car_pos[0] - traffic_pos[0], 2) +
-          Math.pow(car_pos[1] - traffic_pos[1], 2) +
-          Math.pow(car_pos[2] - traffic_pos[2], 2)
-      );
-      if (distance < this.collision_threshold) {
-        this.collision_detected = true;
-        this.materials.road.shader.uniforms.stop_texture_update = 1; // Stop texture update
-        this.materials.road.shader.uniforms.offset = 0;
-        break;
-      }
+    const coin_pos = this.coin_transform.times(vec4(0, 0, 0, 1));
+    const distance = Math.sqrt(
+        Math.pow(car_pos[0] - coin_pos[0], 2) +
+        Math.pow(car_pos[1] - coin_pos[1], 2) +
+        Math.pow(car_pos[2] - coin_pos[2], 2)
+    );
+    if (distance < this.collision_threshold_coin && this.coin_generated) {
+      this.coin_generated = false;
+      this.score++;
     }
   }
 
@@ -644,7 +638,7 @@ export class CarGame extends Scene {
         vec4(0, 0, 0, 1)
       );
       const distance = Math.sqrt(
-        Math.pow(0.88 * (car_pos[0] - traffic_pos[0]), 2) +
+        Math.pow(0.94 * (car_pos[0] - traffic_pos[0]), 2) +
           Math.pow(car_pos[1] - traffic_pos[1], 2) +
           Math.pow(0.45 * (car_pos[2] - traffic_pos[2]), 2)
       );
@@ -900,6 +894,7 @@ export class CarGame extends Scene {
     this.generate_traffic(context, program_state, (t - dt) / 5);
 
     this.generate_coins(context, program_state, t);
+    this.checkCoinCollision();
 
     if (!this.collision_detected) {
       this.generateScore(context, program_state);
@@ -1006,11 +1001,7 @@ export class CarGame extends Scene {
     //   cone_transform,
     //   this.materials.cone
     // )
-    const original_tree_position_1 = -140;
-    const original_tree_position_2 = -200;
-    const original_car2_position = -160;
 
-    //this.checkCollision();
     this.checkTrafficCollision();
   }
 }
