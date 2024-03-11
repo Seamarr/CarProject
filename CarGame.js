@@ -18,7 +18,7 @@ const {
   Texture,
   Scene,
 } = tiny;
-const { Textured_Phong } = defs;
+const { Textured_Phong, Textured_Phong_fog } = defs;
 export class CarGame extends Scene {
   constructor() {
     // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
@@ -77,7 +77,7 @@ export class CarGame extends Scene {
 
     // *** Materials
     this.materials = {
-      car: new Material(new Textured_Phong(), {
+      car: new Material(new Textured_Phong_fog(), {
         ambient: 1,
       }),
       grey: new Material(new defs.Phong_Shader(), {
