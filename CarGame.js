@@ -611,9 +611,13 @@ export class CarGame extends Scene {
     this.time_elapsed_1 = 0;
     this.time_elapsed_2 = 0;
     this.time_elapsed_3 = 0;
+    this.time_elapsed = [0,0,0,0,0,0];
 
     this.car_transform = Mat4.identity();
     this.traffic_transform = [
+      (this.car_transform = Mat4.identity()),
+      (this.car_transform = Mat4.identity()),
+      (this.car_transform = Mat4.identity()),
       (this.car_transform = Mat4.identity()),
       (this.car_transform = Mat4.identity()),
       (this.car_transform = Mat4.identity()),
