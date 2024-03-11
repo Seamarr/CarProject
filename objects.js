@@ -899,6 +899,7 @@ const Basic_Shader = (defs.Basic_Shader = class Basic_Shader extends Shader {
                 attribute vec3 position;                            
                 // Position is expressed in object coordinates.
                 uniform mat4 projection_camera_model_transform;
+                
         
                 void main(){
                     // Compute the vertex's final resting place (in NDCS), and use the hard-coded color of the vertex:
@@ -959,9 +960,12 @@ const Funny_Shader = (defs.Funny_Shader = class Funny_Shader extends Shader {
                 // Position is expressed in object coordinates.
                 attribute vec2 texture_coord;
                 uniform mat4 projection_camera_model_transform;
+                
+                
         
                 void main(){ 
                     gl_Position = projection_camera_model_transform * vec4( position, 1.0 );   
+                    
                     // The vertex's final resting place (in NDCS).
                     f_tex_coord = texture_coord;                                       
                     // Directly use original texture coords and interpolate between.
