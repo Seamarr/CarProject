@@ -1134,7 +1134,7 @@ export class CarGame extends Scene {
       this.materials.sky.shader.uniforms.offset +=
         ((this.game_speed / 2) * t - dt) / 900;
     }
-    // this.generate_traffic(context, program_state, (t - dt) / 5);
+    this.generate_traffic(context, program_state, (t - dt) / 5);
 
 
     this.generate_coins(context, program_state, t);
@@ -1265,6 +1265,6 @@ export class CarGame extends Scene {
     //   this.materials.cone
     // )
 
-    // this.checkTrafficCollision();
+    this.checkTrafficCollision();
   }
 }
