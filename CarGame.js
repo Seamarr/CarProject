@@ -317,6 +317,7 @@ export class CarGame extends Scene {
     const mass_controls = this.control_panel.appendChild(
       document.createElement("span")
     );
+    /*
     mass_controls.style.margin = "30px";
     this.key_triggered_button(
       "-",
@@ -528,6 +529,7 @@ export class CarGame extends Scene {
       undefined,
       coefficient_of_friction_controls
     );
+    */
     this.key_triggered_button("Rainbow Road", ["c"], () => {
       this.rainbow_road_flag = true;
       this.grass_flag = false;
