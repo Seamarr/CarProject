@@ -903,6 +903,10 @@ export class CarGame extends Scene {
       (this.car_transform = Mat4.identity()),
       (this.car_transform = Mat4.identity()),
     ];
+
+    for(let i = 0; i < this.hay_cycles.length; i++) {
+      this.hay_cycles[i] = 1;
+    }
     // Movement state
     this.car_position = vec3(0, 0, 0); // Use a vector to represent position
     this.car_velocity = vec3(0, 0, 0); // Velocity vector
