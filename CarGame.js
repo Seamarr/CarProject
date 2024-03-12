@@ -848,7 +848,7 @@ export class CarGame extends Scene {
             hayX[i],
             0,
             (this.hay_cycles[i] * hayZ[i % 8]) + ((1.4 * zpos))
-          ).times(Mat4.scale(2.5,2.5,2.5)).times(Mat4.rotation(this.hay_angles[i], 0,1,0));
+          ).times(Mat4.scale(2,2,2)).times(Mat4.rotation(this.hay_angles[i], 0,1,0));
           // console.log(this.hay_cycles[i]);
         }
           
