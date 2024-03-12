@@ -1,0 +1,13 @@
+# Blender 3.5.1 MTL File: 'hay_bale.blend'
+# www.blender.org
+
+newmtl hay_bale_texture
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+illum 2
+map_Kd E:/galeria/blender/Textures/hay_bale/hay_bale_color.png
+map_Ns E:/galeria/blender/Textures/hay_bale/hay_bale_roughness.png
+map_d E:/galeria/blender/Textures/hay_bale/hay_bale_alpha.png
+map_Bump -bm 1.000000 E:/galeria/blender/Textures/hay_bale/hay_bale_normal.png
