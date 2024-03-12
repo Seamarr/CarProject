@@ -1280,6 +1280,92 @@ const Textured_Phong = (defs.Textured_Phong = class Textured_Phong extends (
   }
 });
 
+const Textured_Phong_fog =
+  (defs.Textured_Phong_fog = class Textured_Phong_fog extends Phong_Shader {
+    // **Textured_Phong** is a Phong Shader extended to addditionally decal a
+    // texture image over the drawn shape, lined up according to the texture
+    // coordinates that are stored at each shape vertex.
+    vertex_glsl_code() {
+      // ********* VERTEX SHADER *********
+      return (
+        this.shared_glsl_code() +
+        `
+                varying vec2 f_tex_coord;
+                attribute vec3 position, normal;                            
+                // Position is expressed in object coordinates.
+                attribute vec2 texture_coord;
+                
+                uniform mat4 model_transform;
+                uniform mat4 projection_camera_model_transform;
+
+                varying float v_depth;
+                uniform mat4 camera_inverse;
+        
+                void main(){   
+                   vec4 pos_eyespace = camera_inverse * model_transform * vec4(position, 1.0);
+                    v_depth = -pos_eyespace.z; // Negative because the camera looks down the negative z-axis in eye space                                                                
+                    // The vertex's final resting place (in NDCS):
+                    gl_Position = projection_camera_model_transform * vec4( position, 1.0 );
+                    // The final normal vector in screen space.
+                    N = normalize( mat3( model_transform ) * normal / squared_scale);
+                    vertex_worldspace = ( model_transform * vec4( position, 1.0 ) ).xyz;
+                    // Turn the per-vertex texture coordinate into an interpolated variable.
+                    f_tex_coord = texture_coord;
+
+                    
+                  } `
+      );
+    }
+
+    fragment_glsl_code() {
+      // ********* FRAGMENT SHADER *********
+      // A fragment is a pixel that's overlapped by the current triangle.
+      // Fragments affect the final image or get discarded due to depth.
+      return (
+        this.shared_glsl_code() +
+        `
+                varying vec2 f_tex_coord;
+                uniform sampler2D texture;
+                varying float v_depth;
+                const float max_depth = -2.0;
+        
+                void main(){
+                  vec4 tex_color = texture2D(texture, f_tex_coord);
+                  if (tex_color.w < .01) discard;
+                
+                  float fog_factor = clamp(v_depth / max_depth, 0.0, 1.0);
+                  vec3 grey = vec3(0.5, 0.5, 0.5); // Grey color for the fog effect
+                  vec3 color = mix(tex_color.xyz, grey, fog_factor); // Mix texture color with grey based on fog factor
+                
+                  // Calculate initial color with ambient lighting and apply fog
+                  vec4 ambient_color = vec4((color + shape_color.xyz) * ambient, shape_color.w * tex_color.w);
+                  
+                  // Final color with contributions from lights
+                  vec3 final_color = ambient_color.xyz + phong_model_lights(normalize(N), vertex_worldspace);
+                  gl_FragColor = vec4(final_color, ambient_color.w);
+                  } `
+      );
+    }
+
+    update_GPU(context, gpu_addresses, gpu_state, model_transform, material) {
+      // update_GPU(): Add a little more to the base class's version of this method.
+      super.update_GPU(
+        context,
+        gpu_addresses,
+        gpu_state,
+        model_transform,
+        material
+      );
+
+      if (material.texture && material.texture.ready) {
+        // Select texture unit 0 for the fragment shader Sampler2D uniform called "texture":
+        context.uniform1i(gpu_addresses.texture, 0);
+        // For this draw, use the texture image from correct the GPU buffer:
+        material.texture.activate(context);
+      }
+    }
+  });
+
 const Fake_Bump_Map = (defs.Fake_Bump_Map = class Fake_Bump_Map extends (
   Textured_Phong
 ) {

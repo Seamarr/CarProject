@@ -18,7 +18,7 @@ const {
   Texture,
   Scene,
 } = tiny;
-const { Textured_Phong } = defs;
+const { Textured_Phong, Textured_Phong_fog } = defs;
 export class CarGame extends Scene {
   constructor() {
     // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
@@ -83,7 +83,7 @@ export class CarGame extends Scene {
 
     // *** Materials
     this.materials = {
-      car: new Material(new Textured_Phong(), {
+      car: new Material(new Textured_Phong_fog(), {
         ambient: 1,
       }),
       moon: new Material(new Textured_Phong(), {
@@ -370,6 +370,7 @@ export class CarGame extends Scene {
     const mass_controls = this.control_panel.appendChild(
       document.createElement("span")
     );
+    /*
     mass_controls.style.margin = "30px";
     this.key_triggered_button(
       "-",
@@ -581,6 +582,7 @@ export class CarGame extends Scene {
       undefined,
       coefficient_of_friction_controls
     );
+    */
     this.key_triggered_button("Rainbow Road", ["c"], () => {
       this.rainbow_road_flag = true;
       this.grass_flag = false;
@@ -623,6 +625,7 @@ export class CarGame extends Scene {
           );
         } else {
           this.time_elapsed[i] = t;
+          this.score += 1;
         }
       }
     }
@@ -985,15 +988,11 @@ export class CarGame extends Scene {
       const lanePositionX = 5 - 5 * laneIndex;
       let random = Math.random();
       if (random < 5 / 6) {
-        // 5 out of 6 chances to be in the 0-0.5 range
-        this.coin_speed = (random * 0.5) / (5 / 6);
+        // 5 out of 6 chances to fall into the first part of the range
+        this.coin_speed = 0.3 + random * (0.3 / (5 / 6));
       } else {
-        // 1 out of 6 chances to be in the 0.51-1 range
-        this.coin_speed = 0.51 + (random - 5 / 6) * (0.49 / (1 / 6));
-      }
-
-      if (this.coin_speed < 0.1) {
-        this.coin_speed = 0.1;
+        // 1 out of 6 chances to fall into the second part of the range
+        this.coin_speed = 0.61 + (random - 5 / 6) * (0.39 / (1 / 6));
       }
 
       // Reset coin_transform for the new coin
