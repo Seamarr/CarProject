@@ -570,6 +570,7 @@ export class CarGame extends Scene {
           );
         } else {
           this.time_elapsed[i] = t;
+          this.score += 1;
         }
       }
     }
@@ -738,15 +739,11 @@ export class CarGame extends Scene {
       const lanePositionX = 5 - 5 * laneIndex;
       let random = Math.random();
       if (random < 5 / 6) {
-        // 5 out of 6 chances to be in the 0-0.5 range
-        this.coin_speed = (random * 0.5) / (5 / 6);
+        // 5 out of 6 chances to fall into the first part of the range
+        this.coin_speed = 0.3 + random * (0.3 / (5 / 6));
       } else {
-        // 1 out of 6 chances to be in the 0.51-1 range
-        this.coin_speed = 0.51 + (random - 5 / 6) * (0.49 / (1 / 6));
-      }
-
-      if (this.coin_speed < 0.1) {
-        this.coin_speed = 0.1;
+        // 1 out of 6 chances to fall into the second part of the range
+        this.coin_speed = 0.61 + (random - 5 / 6) * (0.39 / (1 / 6));
       }
 
       // Reset coin_transform for the new coin
