@@ -23,7 +23,7 @@ export class CarGame extends Scene {
   constructor() {
     // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
     super();
-
+    const bump = new defs.Fake_Bump_Map(1);
     // At the beginning of our program, load one of each of these shape definitions onto the GPU.
     this.shapes = {
       box: new defs.Box(2, 1, 4),
@@ -146,6 +146,7 @@ export class CarGame extends Scene {
         texture: new Texture("assets/qmark2.png"),
       }),
       hay: new Material(new Textured_Phong(), {
+        bump,
         ambient: .8,
         specularity: 0,
         // diffusivity: .5,
@@ -173,6 +174,9 @@ export class CarGame extends Scene {
 
     this.time_elapsed = [0, 0, 0, 0, 0, 0];
     this.hay_time_elapsed = [0,0,0,0,0,0,0,0];
+    this.ast_time_elapsed = [0,0,0,0,0,0,0,0,0,0,0];
+
+    this.hay_cycles = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
 
     this.car_transform = Mat4.identity();
     this.traffic_transform = [
@@ -200,8 +204,22 @@ export class CarGame extends Scene {
         (this.object_transform = Mat4.identity()),
     ];
 
+    this.rotation_angles = [0, Math.PI/3, Math.PI/4, (Math.PI)/6];
+    this.hay_angles = [];
+    for(let i = 0; i < 16; i++) {
+      this.hay_angles.push(this.rotation_angles[i % 4]);
+    }
+
     this.hay_transform = Mat4.identity();
     this.grass_transform = [
+      (this.hay_transform = Mat4.identity()),
+      (this.hay_transform = Mat4.identity()),
+      (this.hay_transform = Mat4.identity()),
+      (this.hay_transform = Mat4.identity()),
+      (this.hay_transform = Mat4.identity()),
+      (this.hay_transform = Mat4.identity()),
+      (this.hay_transform = Mat4.identity()),
+      (this.hay_transform = Mat4.identity()),
       (this.hay_transform = Mat4.identity()),
       (this.hay_transform = Mat4.identity()),
       (this.hay_transform = Mat4.identity()),
@@ -676,10 +694,9 @@ export class CarGame extends Scene {
 
   generateSpaceObjects(context, program_state, t) {
     if (!this.collision_detected) {
-        const startingZ = [-300, -250, -320, -400, -300, -360, -300, -270,-300,-500,-260];
+        const startingZ = [-300, -350, -380, -400, -300, -360, -450, -480,-300,-500,-320];
 
         for (let i = 0; i < 11; i++) {
-            
             if(i < 3) {
                 if( i % 2 == 1 ) {
                     this.space_transform[i].object_transform = Mat4.translation(
@@ -750,18 +767,18 @@ export class CarGame extends Scene {
 
         for(let i = 0; i < 11; i++) {
             if (
-                5 * (t - this.time_elapsed[i]) <=
+                7 * (t - this.ast_time_elapsed[i]) <=
                 Math.abs(startingZ[i]) / this.game_speed
             ) {
                 this.space_transform[i].object_transform = this.space_transform[i].object_transform.times(
                 Mat4.translation(
                     0,
                     0,
-                    5 * this.game_speed * 2 * (t - this.time_elapsed[i])
+                    5 * this.game_speed * 2 * (t - this.ast_time_elapsed[i])
                 )
                 );
             } else {
-                this.time_elapsed[i] = t;
+                this.ast_time_elapsed[i] = t;
             }
         }
         for (let i = 0; i < 11; i++) {
@@ -814,50 +831,53 @@ export class CarGame extends Scene {
     }
   }
 
-  generateHay(context, program_state, zpos, dt) {
+  generateHay(context, program_state, zpos) {
     if (!this.collision_detected) {
-      const hayZ = [-255, -200, -250, -200, -210, -210, -300, -260];
-      for (let i = 0; i < 8; i++) {
-          this.grass_transform[i].hay_transform = 
-            Mat4.translation(
-              40 - (10 * i),
-              0,
-              hayZ[i]
-            ).times(Mat4.scale(2.5,2.5,2.5));
+      const hayX = [-70,-50,-30, -15, 15, 45, 28, 60, -80, -120, -100, -90, 120, 75, 90, 105];
+      const hayZ = [-275, -300, -340, -290, -320, -335, -285, -295];
+      for (let i = 0; i < 16; i++) {
+
+        if((1.4 * zpos)  > Math.abs(hayZ[i % 8] * this.hay_cycles[i]) + 20){
+          this.hay_cycles[i] += 1;
+          console.log(1.4 * zpos);
+          this.hay_angles[i] = Math.random() % 4;
+          // console.log(this.hay_cycles[i]);
+        }
+        this.grass_transform[i].hay_transform = 
+          Mat4.translation(
+            hayX[i],
+            0,
+            (this.hay_cycles[i] * hayZ[i % 8]) + ((1.4 * zpos))
+          ).times(Mat4.scale(2.5,2.5,2.5)).times(Mat4.rotation(this.hay_angles[i], 0,1,0));
+          // console.log(this.hay_cycles[i]);
         }
           
-      for (let i = 0; i < 8; i++) {
-        if (
-           2 * (dt - this.hay_time_elapsed[i]) <=
-          Math.abs(hayZ[i]) / (this.game_speed)
-          // this.distTraveled[i] < Math.abs(hayZ[i])
-        ) {
-          this.grass_transform[i].hay_transform = this.grass_transform[i].hay_transform.times(
-            Mat4.translation(
-              0,
-              0,
-              Math.pow(this.game_speed,1.4) * (dt - this.hay_time_elapsed[i]) / 2.5
-              // zpos/2 + this.distTraveled[i]
-            )
-          );
-          // this.distTraveled[i] -= zpos/350;
-        } else {
-          // this.distTraveled[i] = 0;
-          // this.grass_transform[i].hay_transform = this.grass_transform[i].hay_transform.times(
-          //   Mat4.translation(
-          //     0,
-          //     0,
-          //     5 * this.game_speed * 1.25 * (dt - this.time_elapsed[i])
-          //     // -100
-          //   )
-          // );
-          // console.log("Narek retarded: Here is the z position: ", zpos);
-          this.hay_time_elapsed[i] = dt;
-        }
-      }
+      // for (let i = 0; i < 8; i++) {
+      //   if (
+      //     //  3 * (dt - this.hay_time_elapsed[i]) <=
+      //     // Math.abs(hayZ[i]) / (this.game_speed)
+      //     this.hay_distance[i] <= hayZ[i]
+      //     // this.distTraveled[i] < Math.abs(hayZ[i])
+      //   ) {
+      //     this.grass_transform[i].hay_transform = this.grass_transform[i].hay_transform.times(
+      //       Mat4.translation(
+      //         0,
+      //         0,
+      //         0
+      //         // hay_distance[i] + zpos/450
+      //         // (Math.pow(this.game_speed,1.3)  * (dt - this.hay_time_elapsed[i]) /2 )
+      //       )
+      //     );
+      //     this.hay_distance[i] = this.hay_distance[i] + zpos/450;
+      //   } else {
+      //     // this.hay_time_elapsed[i] = dt;
+      //     // console.log(zpos)
+      //     this.hay_distance[i] = 0;
+      //   }
+      // }
     }
   
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 16; i++) {
       this.grass_transform[i].hay_transform =  this.grass_transform[i].hay_transform
       this.shapes.hay.draw(
         context,
@@ -1090,6 +1110,12 @@ export class CarGame extends Scene {
       program_state.animation_delta_time = 0;
       this.game_speed = 0;
       this.resetTime = false;
+      for(let i = 0; i < 8; i++) {
+        this.hay_time_elapsed[i] = 0;
+      }
+      for(let i = 0; i < 8; i++) {
+        this.ast_time_elapsed[i] = 0;
+      }
     }
 
     const t = program_state.animation_time / 1000;
