@@ -296,6 +296,9 @@ export class CarGame extends Scene {
       Mat4.translation(5, 8, 0)
     );
     this.score = 0;
+
+    //collision
+    this.allow_collisions = true;
   }
 
   calculateAcceleration(force, mass) {}
@@ -609,6 +612,25 @@ export class CarGame extends Scene {
       this.rainbow_road_flag = false;
       this.grass_flag = true;
     });
+    this.new_line();
+    const collision_controls = this.control_panel.appendChild(
+      document.createElement("span")
+    );
+    this.key_triggered_button(
+      "Enable/Disable Collisions",
+      ["f"],
+      () => {
+        this.allow_collisions = !this.allow_collisions;
+      },
+      undefined,
+      undefined,
+      undefined,
+      collision_controls
+    );
+
+    this.live_string((car) => {
+      car.textContent = "Collisions: " + this.allow_collisions;
+    }, collision_controls);
   }
 
   generate_traffic(context, program_state, t) {
@@ -915,7 +937,6 @@ export class CarGame extends Scene {
     this.car_acceleration = vec3(0, 0, 0); // Acceleration vector
 
     // Physics Constants
-    this.max_speed = 10;
 
     this.car_mass = 9;
     this.coefficient_of_friction = 1.0;
@@ -1276,6 +1297,8 @@ export class CarGame extends Scene {
     //   this.materials.cone
     // )
 
-    this.checkTrafficCollision();
+    if (this.allow_collisions) {
+      this.checkTrafficCollision();
+    }
   }
 }
