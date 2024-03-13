@@ -255,9 +255,9 @@ export class CarGame extends Scene {
     this.max_speed = 10;
 
     this.car_mass = 9;
-    this.coefficient_of_friction = 1.0;
-    this.applied_force = 10000;
-    this.braking_force = 5000;
+    this.coefficient_of_friction = 0.25;
+    this.applied_force = 210;
+    this.braking_force = 65;
     this.friction_force = this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
 
     this.total_acceleration_force = this.applied_force - this.friction_force;
@@ -387,6 +387,42 @@ export class CarGame extends Scene {
     this.key_triggered_button("Restart Game", ["r"], () => {
       this.restart();
     });
+    this.new_line();
+    const max_speed_controls = this.control_panel.appendChild(
+      document.createElement("span")
+    );
+
+    max_speed_controls.style.margin = "30px";
+    this.key_triggered_button(
+      "-",
+      ["n"],
+      () => {
+        if (!this.collision_detected) {
+          this.max_speed /= 1.2;
+          if (this.max_speed < 0) {
+            this.max_speed = 0;
+          }
+        }
+      },
+      undefined,
+      undefined,
+      undefined,
+      max_speed_controls
+    );
+    this.live_string((car) => {
+      car.textContent = "Max Speed: " + this.max_speed.toFixed(2);
+    }, max_speed_controls);
+    this.key_triggered_button(
+      "+",
+      ["m"],
+      () => {
+        this.max_speed *= 1.2;
+      },
+      undefined,
+      undefined,
+      undefined,
+      max_speed_controls
+    );
     this.new_line();
     const mass_controls = this.control_panel.appendChild(
       document.createElement("span")
@@ -939,9 +975,9 @@ export class CarGame extends Scene {
     // Physics Constants
 
     this.car_mass = 9;
-    this.coefficient_of_friction = 1.0;
-    this.applied_force = 10000;
-    this.braking_force = 5000;
+    this.coefficient_of_friction = 0.25;
+    this.applied_force = 210;
+    this.braking_force = 65;
     this.friction_force = this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
 
     this.total_acceleration_force = this.applied_force - this.friction_force;
