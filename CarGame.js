@@ -45,7 +45,7 @@ export class CarGame extends Scene {
       coin: new defs.Cube(2, 2, 2),
       text: new Text_Line(35),
       cube: new defs.Cube(),
-      hay: new defs.Cube(6,2,2),
+      hay: new defs.Cube(6, 2, 2),
       sphere4: new defs.Subdivision_Sphere(4),
       sphere3: new defs.Subdivision_Sphere(3),
       sphere2: new defs.Subdivision_Sphere(2),
@@ -63,7 +63,6 @@ export class CarGame extends Scene {
     this.shapes.sky.arrays.texture_coord.forEach((element) => {
       element.scale_by(3);
     });
-
 
     this.cars = [
       { car: new Shapes_From_File("assets/Car.obj") },
@@ -89,20 +88,20 @@ export class CarGame extends Scene {
       moon: new Material(new Textured_Phong(), {
         ambient: 1,
         // color: hex_color("FFFFFF")
-        specularity: .1,
-        texture: new Texture("assets/moon_texture.jpeg")
+        specularity: 0.1,
+        texture: new Texture("assets/moon_texture.jpeg"),
       }),
       redrock: new Material(new Textured_Phong(), {
         ambient: 1,
         // color: hex_color("FFFFFF")
-        specularity: .1,
-        texture: new Texture("assets/red_rock.jpeg")
+        specularity: 0.1,
+        texture: new Texture("assets/red_rock.jpeg"),
       }),
       darkrock: new Material(new Textured_Phong(), {
         ambient: 1,
         // color: hex_color("FFFFFF")
-        specularity: .1,
-        texture: new Texture("assets/darker_rock.jpeg")
+        specularity: 0.1,
+        texture: new Texture("assets/darker_rock.jpeg"),
       }),
       grey: new Material(new defs.Phong_Shader(), {
         color: color(0.5, 0.5, 0.5, 1),
@@ -147,7 +146,7 @@ export class CarGame extends Scene {
       }),
       hay: new Material(new Textured_Phong(), {
         bump,
-        ambient: .8,
+        ambient: 0.8,
         specularity: 0,
         // diffusivity: .5,
         texture: new Texture("assets/haytexture_loopable.png"),
@@ -173,10 +172,10 @@ export class CarGame extends Scene {
     this.time_elapsed_3 = 0;
 
     this.time_elapsed = [0, 0, 0, 0, 0, 0];
-    this.hay_time_elapsed = [0,0,0,0,0,0,0,0];
-    this.ast_time_elapsed = [0,0,0,0,0,0,0,0,0,0,0];
+    this.hay_time_elapsed = [0, 0, 0, 0, 0, 0, 0, 0];
+    this.ast_time_elapsed = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-    this.hay_cycles = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
+    this.hay_cycles = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
 
     this.car_transform = Mat4.identity();
     this.traffic_transform = [
@@ -188,25 +187,24 @@ export class CarGame extends Scene {
       (this.car_transform = Mat4.identity()),
     ];
 
-
     this.object_transform = Mat4.identity();
     this.space_transform = [
-        (this.object_transform = Mat4.identity()),
-        (this.object_transform = Mat4.identity()),
-        (this.object_transform = Mat4.identity()),
-        (this.object_transform = Mat4.identity()),
-        (this.object_transform = Mat4.identity()),
-        (this.object_transform = Mat4.identity()),
-        (this.object_transform = Mat4.identity()),
-        (this.object_transform = Mat4.identity()),
-        (this.object_transform = Mat4.identity()),
-        (this.object_transform = Mat4.identity()),
-        (this.object_transform = Mat4.identity()),
+      (this.object_transform = Mat4.identity()),
+      (this.object_transform = Mat4.identity()),
+      (this.object_transform = Mat4.identity()),
+      (this.object_transform = Mat4.identity()),
+      (this.object_transform = Mat4.identity()),
+      (this.object_transform = Mat4.identity()),
+      (this.object_transform = Mat4.identity()),
+      (this.object_transform = Mat4.identity()),
+      (this.object_transform = Mat4.identity()),
+      (this.object_transform = Mat4.identity()),
+      (this.object_transform = Mat4.identity()),
     ];
 
-    this.rotation_angles = [0, Math.PI/3, Math.PI/4, (Math.PI)/6];
+    this.rotation_angles = [0, Math.PI / 3, Math.PI / 4, Math.PI / 6];
     this.hay_angles = [];
-    for(let i = 0; i < 16; i++) {
+    for (let i = 0; i < 16; i++) {
       this.hay_angles.push(this.rotation_angles[i % 4]);
     }
 
@@ -228,11 +226,13 @@ export class CarGame extends Scene {
       (this.hay_transform = Mat4.identity()),
       (this.hay_transform = Mat4.identity()),
       (this.hay_transform = Mat4.identity()),
-    ]
+    ];
 
     this.car2_transform = Mat4.identity();
     this.road_transform = Mat4.identity().times(Mat4.scale(10, 0.1, 300));
-    this.moon_transform = Mat4.identity().times(Mat4.scale(20, 20, 20)).times(Mat4.translation(10,.5,-10))
+    this.moon_transform = Mat4.identity()
+      .times(Mat4.scale(20, 20, 20))
+      .times(Mat4.translation(10, 0.5, -10));
     this.grass_left_transform = Mat4.identity().times(
       Mat4.scale(100, 0.1, 300)
     );
@@ -288,8 +288,8 @@ export class CarGame extends Scene {
     this.coin_interval = 5; // The interval between coin generations
     this.coin_rotation_angle = 0.01;
 
-    this.resetDist = [0,0,0,0,0,0,0,0];
-    this.distTraveled = [0,0,0,0,0,0,0,0];
+    this.resetDist = [0, 0, 0, 0, 0, 0, 0, 0];
+    this.distTraveled = [0, 0, 0, 0, 0, 0, 0, 0];
 
     //score
     this.score_transformation = Mat4.identity().times(
@@ -388,7 +388,7 @@ export class CarGame extends Scene {
     const mass_controls = this.control_panel.appendChild(
       document.createElement("span")
     );
-    /*
+
     mass_controls.style.margin = "30px";
     this.key_triggered_button(
       "-",
@@ -600,7 +600,7 @@ export class CarGame extends Scene {
       undefined,
       coefficient_of_friction_controls
     );
-    */
+
     this.key_triggered_button("Rainbow Road", ["c"], () => {
       this.rainbow_road_flag = true;
       this.grass_flag = false;
@@ -694,164 +694,165 @@ export class CarGame extends Scene {
 
   generateSpaceObjects(context, program_state, t) {
     if (!this.collision_detected) {
-        const startingZ = [-300, -350, -380, -400, -300, -360, -450, -480,-300,-500,-320];
+      const startingZ = [
+        -300, -350, -380, -400, -300, -360, -450, -480, -300, -500, -320,
+      ];
 
-        for (let i = 0; i < 11; i++) {
-            if(i < 3) {
-                if( i % 2 == 1 ) {
-                    this.space_transform[i].object_transform = Mat4.translation(
-                    30,
-                    -5,
-                    startingZ[i]
-                    ).times(Mat4.scale(2.0, 1.25, 1.25));
-                }
-                else {
-                    this.space_transform[i].object_transform = Mat4.translation(
-                    20 - (20 * i),
-                    10,
-                    startingZ[i]
-                    ).times(Mat4.scale(1.25, 1.25, 1.25));
-                }
-            }
-            else if (i < 6){
-                if( i % 2 == 1 ) {
-                    this.space_transform[i].object_transform = Mat4.translation(
-                    30 - (5 * .1 * t),
-                    15,
-                    startingZ[i]
-                    ).times(Mat4.scale(1.25, 2.0, 1.25));
-                }
-                else {
-                    this.space_transform[i].object_transform = Mat4.translation(
-                    20 - (20 * i),
-                    -5,
-                    startingZ[i]
-                    ).times(Mat4.scale(2.0, 3.0, 3.0));
-                }
-            }
-            else if(i < 8){
-                if( i % 2 == 1 ) {
-                    this.space_transform[i].object_transform = Mat4.translation(
-                    30 - (5 * .1 * t),
-                    -10,
-                    startingZ[i]
-                    ).times(Mat4.scale(1.25, 1.25, 1.25));
-                }
-                else {
-                    this.space_transform[i].object_transform = Mat4.translation(
-                    -30,
-                    -7,
-                    startingZ[i]
-                    ).times(Mat4.scale(1.25, 1.25, 1.25));
-                }
-            }
-            else {
-                if( i % 2 == 1 ) {
-                    this.space_transform[i].object_transform = Mat4.translation(
-                    -50 + 2*i,
-                    -20,
-                    startingZ[i]
-                    ).times(Mat4.scale(1.25, 1.25, 1.25));
-                }
-                else {
-                    this.space_transform[i].object_transform = Mat4.translation(
-                    -30,
-                    0,
-                    startingZ[i]
-                    ).times(Mat4.scale(1.25, 1.25, 1.25));
-                }
-            }
-
-
+      for (let i = 0; i < 11; i++) {
+        if (i < 3) {
+          if (i % 2 == 1) {
+            this.space_transform[i].object_transform = Mat4.translation(
+              30,
+              -5,
+              startingZ[i]
+            ).times(Mat4.scale(2.0, 1.25, 1.25));
+          } else {
+            this.space_transform[i].object_transform = Mat4.translation(
+              20 - 20 * i,
+              10,
+              startingZ[i]
+            ).times(Mat4.scale(1.25, 1.25, 1.25));
+          }
+        } else if (i < 6) {
+          if (i % 2 == 1) {
+            this.space_transform[i].object_transform = Mat4.translation(
+              30 - 5 * 0.1 * t,
+              15,
+              startingZ[i]
+            ).times(Mat4.scale(1.25, 2.0, 1.25));
+          } else {
+            this.space_transform[i].object_transform = Mat4.translation(
+              20 - 20 * i,
+              -5,
+              startingZ[i]
+            ).times(Mat4.scale(2.0, 3.0, 3.0));
+          }
+        } else if (i < 8) {
+          if (i % 2 == 1) {
+            this.space_transform[i].object_transform = Mat4.translation(
+              30 - 5 * 0.1 * t,
+              -10,
+              startingZ[i]
+            ).times(Mat4.scale(1.25, 1.25, 1.25));
+          } else {
+            this.space_transform[i].object_transform = Mat4.translation(
+              -30,
+              -7,
+              startingZ[i]
+            ).times(Mat4.scale(1.25, 1.25, 1.25));
+          }
+        } else {
+          if (i % 2 == 1) {
+            this.space_transform[i].object_transform = Mat4.translation(
+              -50 + 2 * i,
+              -20,
+              startingZ[i]
+            ).times(Mat4.scale(1.25, 1.25, 1.25));
+          } else {
+            this.space_transform[i].object_transform = Mat4.translation(
+              -30,
+              0,
+              startingZ[i]
+            ).times(Mat4.scale(1.25, 1.25, 1.25));
+          }
         }
+      }
 
-        for(let i = 0; i < 11; i++) {
-            if (
-                7 * (t - this.ast_time_elapsed[i]) <=
-                Math.abs(startingZ[i]) / this.game_speed
-            ) {
-                this.space_transform[i].object_transform = this.space_transform[i].object_transform.times(
-                Mat4.translation(
-                    0,
-                    0,
-                    5 * this.game_speed * 2 * (t - this.ast_time_elapsed[i])
-                )
-                );
-            } else {
-                this.ast_time_elapsed[i] = t;
-            }
+      for (let i = 0; i < 11; i++) {
+        if (
+          7 * (t - this.ast_time_elapsed[i]) <=
+          Math.abs(startingZ[i]) / this.game_speed
+        ) {
+          this.space_transform[i].object_transform = this.space_transform[
+            i
+          ].object_transform.times(
+            Mat4.translation(
+              0,
+              0,
+              5 * this.game_speed * 2 * (t - this.ast_time_elapsed[i])
+            )
+          );
+        } else {
+          this.ast_time_elapsed[i] = t;
         }
-        for (let i = 0; i < 11; i++) {
-           
-            if( i < 3) {
-              this.space_transform[i].object_transform = this.space_transform[i].object_transform.times(Mat4.rotation(2 * t * Math.PI, 0, 1, 0));
-            this.shapes.sphere1.draw(
+      }
+      for (let i = 0; i < 11; i++) {
+        if (i < 3) {
+          this.space_transform[i].object_transform = this.space_transform[
+            i
+          ].object_transform.times(Mat4.rotation(2 * t * Math.PI, 0, 1, 0));
+          this.shapes.sphere1.draw(
             context,
             program_state,
             this.space_transform[i].object_transform,
             this.materials.moon
-            );
-            } else if( i < 6){
-              this.space_transform[i].object_transform = this.space_transform[i].object_transform.times(Mat4.rotation(2 * t * Math.PI, 1, 1, 0));
-                this.shapes.sphere2.draw(
-                context,
-                program_state,
-                this.space_transform[i].object_transform,
-                this.materials.darkrock
-                );
-            }
-            else if( i < 8) {
-              this.space_transform[i].object_transform = this.space_transform[i].object_transform.times(Mat4.rotation(2 * t * Math.PI, 0, 0, 1));
-                this.shapes.sphere3.draw(
-                    context,
-                    program_state,
-                    this.space_transform[i].object_transform,
-                    this.materials.moon
-                    );
-            }
-            else if (i == 9) {
-                this.shapes.sphere1.draw(
-                    context,
-                    program_state,
-                    this.space_transform[i].object_transform,
-                    this.materials.moon
-                    );  
-            }
-            else {
-              this.space_transform[i].object_transform = this.space_transform[i].object_transform.times(Mat4.rotation(2 * t * Math.PI, 1, 0, 1));
-                this.shapes.sphere4.draw(
-                    context,
-                    program_state,
-                    this.space_transform[i].object_transform,
-                    this.materials.darkrock
-                );
-            }
-
+          );
+        } else if (i < 6) {
+          this.space_transform[i].object_transform = this.space_transform[
+            i
+          ].object_transform.times(Mat4.rotation(2 * t * Math.PI, 1, 1, 0));
+          this.shapes.sphere2.draw(
+            context,
+            program_state,
+            this.space_transform[i].object_transform,
+            this.materials.darkrock
+          );
+        } else if (i < 8) {
+          this.space_transform[i].object_transform = this.space_transform[
+            i
+          ].object_transform.times(Mat4.rotation(2 * t * Math.PI, 0, 0, 1));
+          this.shapes.sphere3.draw(
+            context,
+            program_state,
+            this.space_transform[i].object_transform,
+            this.materials.moon
+          );
+        } else if (i == 9) {
+          this.shapes.sphere1.draw(
+            context,
+            program_state,
+            this.space_transform[i].object_transform,
+            this.materials.moon
+          );
+        } else {
+          this.space_transform[i].object_transform = this.space_transform[
+            i
+          ].object_transform.times(Mat4.rotation(2 * t * Math.PI, 1, 0, 1));
+          this.shapes.sphere4.draw(
+            context,
+            program_state,
+            this.space_transform[i].object_transform,
+            this.materials.darkrock
+          );
         }
+      }
     }
   }
 
   generateHay(context, program_state, zpos) {
     if (!this.collision_detected) {
-      const hayX = [-70,-50,-30, -15, 15, 45, 28, 60, -80, -120, -100, -90, 120, 75, 90, 105];
+      const hayX = [
+        -70, -50, -30, -15, 15, 45, 28, 60, -80, -120, -100, -90, 120, 75, 90,
+        105,
+      ];
       const hayZ = [-275, -300, -340, -290, -320, -335, -285, -295];
       for (let i = 0; i < 16; i++) {
-
-        if((1.4 * zpos)  > Math.abs(hayZ[i % 8] * this.hay_cycles[i]) + 20){
+        if (1.4 * zpos > Math.abs(hayZ[i % 8] * this.hay_cycles[i]) + 20) {
           this.hay_cycles[i] += 1;
           console.log(1.4 * zpos);
           this.hay_angles[i] = Math.random() % 4;
           // console.log(this.hay_cycles[i]);
         }
-        this.grass_transform[i].hay_transform = 
-          Mat4.translation(
-            hayX[i],
-            0,
-            (this.hay_cycles[i] * hayZ[i % 8]) + ((1.4 * zpos))
-          ).times(Mat4.scale(2,2,2)).times(Mat4.rotation(this.hay_angles[i], 0,1,0));
-          // console.log(this.hay_cycles[i]);
-        }
-          
+        this.grass_transform[i].hay_transform = Mat4.translation(
+          hayX[i],
+          0,
+          this.hay_cycles[i] * hayZ[i % 8] + 1.4 * zpos
+        )
+          .times(Mat4.scale(2, 2, 2))
+          .times(Mat4.rotation(this.hay_angles[i], 0, 1, 0));
+        // console.log(this.hay_cycles[i]);
+      }
+
       // for (let i = 0; i < 8; i++) {
       //   if (
       //     //  3 * (dt - this.hay_time_elapsed[i]) <=
@@ -876,9 +877,10 @@ export class CarGame extends Scene {
       //   }
       // }
     }
-  
+
     for (let i = 0; i < 16; i++) {
-      this.grass_transform[i].hay_transform =  this.grass_transform[i].hay_transform
+      this.grass_transform[i].hay_transform =
+        this.grass_transform[i].hay_transform;
       this.shapes.hay.draw(
         context,
         program_state,
@@ -904,7 +906,7 @@ export class CarGame extends Scene {
       (this.car_transform = Mat4.identity()),
     ];
 
-    for(let i = 0; i < this.hay_cycles.length; i++) {
+    for (let i = 0; i < this.hay_cycles.length; i++) {
       this.hay_cycles[i] = 1;
     }
     // Movement state
@@ -1114,10 +1116,10 @@ export class CarGame extends Scene {
       program_state.animation_delta_time = 0;
       this.game_speed = 0;
       this.resetTime = false;
-      for(let i = 0; i < 8; i++) {
+      for (let i = 0; i < 8; i++) {
         this.hay_time_elapsed[i] = 0;
       }
-      for(let i = 0; i < 8; i++) {
+      for (let i = 0; i < 8; i++) {
         this.ast_time_elapsed[i] = 0;
       }
     }
@@ -1130,7 +1132,7 @@ export class CarGame extends Scene {
       this.materials.road.shader.uniforms.offset +=
         ((this.game_speed / 2) * t - dt) / 450;
       this.materials.grass.shader.uniforms.offset +=
-         ((this.game_speed / 2) * t - dt) / 15;
+        ((this.game_speed / 2) * t - dt) / 15;
       this.materials.rainbow.shader.uniforms.offset +=
         ((this.game_speed / 2) * t - dt) / 90;
       this.materials.stars.shader.uniforms.offset +=
@@ -1139,7 +1141,6 @@ export class CarGame extends Scene {
         ((this.game_speed / 2) * t - dt) / 900;
     }
     this.generate_traffic(context, program_state, (t - dt) / 5);
-
 
     this.generate_coins(context, program_state, t);
     this.checkCoinCollision();
@@ -1186,7 +1187,9 @@ export class CarGame extends Scene {
       Mat4.translation(0, 0, -500)
     );
 
-    const moon_transform = this.moon_transform.times(Mat4.translation(0,0,-50));
+    const moon_transform = this.moon_transform.times(
+      Mat4.translation(0, 0, -50)
+    );
 
     // const cone_transform = this.cone_transform.times(Mat4.translation(0,0,-100))
 
@@ -1222,7 +1225,12 @@ export class CarGame extends Scene {
         grass_right_transform,
         this.materials.grass
       );
-      this.generateHay(context, program_state, ((this.game_speed / 2) * t - dt), (t-dt) / 5);
+      this.generateHay(
+        context,
+        program_state,
+        (this.game_speed / 2) * t - dt,
+        (t - dt) / 5
+      );
     } else if (this.rainbow_road_flag) {
       this.shapes.rainbow_road.draw(
         //RAINBOW ROAD
@@ -1244,7 +1252,7 @@ export class CarGame extends Scene {
         this.materials.moon
       );
 
-      this.generateSpaceObjects(context, program_state, (t-dt) / 5);
+      this.generateSpaceObjects(context, program_state, (t - dt) / 5);
     }
 
     this.cars[4].car.draw(
@@ -1260,7 +1268,6 @@ export class CarGame extends Scene {
     //   this.car_transform,
     //   this.materials.hay
     // );
-
 
     // this.shapes.cone.draw(
     //   context,
