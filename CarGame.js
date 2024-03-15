@@ -968,27 +968,27 @@ export class CarGame extends Scene {
       this.hay_cycles[i] = 1;
     }
     // Movement state
-    this.car_position = vec3(0, 0, 0); // Use a vector to represent position
-    this.car_velocity = vec3(0, 0, 0); // Velocity vector
-    this.car_acceleration = vec3(0, 0, 0); // Acceleration vector
+    //this.car_position = vec3(0, 0, 0); // Use a vector to represent position
+    //this.car_velocity = vec3(0, 0, 0); // Velocity vector
+    //this.car_acceleration = vec3(0, 0, 0); // Acceleration vector
 
     // Physics Constants
 
-    this.car_mass = 9;
-    this.coefficient_of_friction = 0.25;
-    this.applied_force = 210;
-    this.braking_force = 65;
-    this.friction_force = this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
+    // this.car_mass = 9;
+    // this.coefficient_of_friction = 0.25;
+    // this.applied_force = 210;
+    // this.braking_force = 65;
+    // this.friction_force = this.coefficient_of_friction * this.car_mass * 9.8; //9.8 for gravity
 
-    this.total_acceleration_force = this.applied_force - this.friction_force;
-    this.total_deceleration_force = this.braking_force + this.friction_force;
+    // this.total_acceleration_force = this.applied_force - this.friction_force;
+    // this.total_deceleration_force = this.braking_force + this.friction_force;
 
-    this.acceleration_rate = this.total_acceleration_force / this.car_mass;
-    this.deceleration_rate = this.total_deceleration_force / this.car_mass;
+    // this.acceleration_rate = this.total_acceleration_force / this.car_mass;
+    // this.deceleration_rate = this.total_deceleration_force / this.car_mass;
 
-    if (this.acceleration_rate < 0) {
-      this.acceleration_rate = 0;
-    }
+    // if (this.acceleration_rate < 0) {
+    //   this.acceleration_rate = 0;
+    // }
 
     this.collision_detected = false;
 
