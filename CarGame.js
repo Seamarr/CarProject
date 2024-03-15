@@ -164,6 +164,10 @@ export class CarGame extends Scene {
       vec3(0, 1, 0) // up direction
     );
 
+    //sound
+    this.sound = document.getElementById("crashSound");
+    this.soundPlayed = false;
+
     this.rainbow_road_flag = false;
     this.grass_flag = true;
 
@@ -949,6 +953,9 @@ export class CarGame extends Scene {
   }
 
   restart() {
+    this.sound.pause();
+    this.soundPlayed = false;
+    this.sound.currentTime = 0;
     this.time_elapsed_1 = 0;
     this.time_elapsed_2 = 0;
     this.time_elapsed_3 = 0;
@@ -1205,6 +1212,10 @@ export class CarGame extends Scene {
     if (!this.collision_detected) {
       this.generateScore(context, program_state);
     } else {
+      if (!this.soundPlayed) {
+        this.sound.play();
+      }
+      this.soundPlayed = true;
       this.shapes.text.set_string(
         `Game Over! Your score is: ${this.score}`,
         context.context
