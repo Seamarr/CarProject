@@ -167,6 +167,7 @@ export class CarGame extends Scene {
     //sound
     this.sound = document.getElementById("crashSound");
     this.soundPlayed = false;
+    this.sound.volume = 0.0;
 
     this.rainbow_road_flag = false;
     this.grass_flag = true;
